@@ -1,0 +1,22 @@
+{
+  "name": "zverata",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Зверята: Слияние — casual drop-merge game for Yandex Games",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "check": "echo 'preflight not yet implemented'",
+    "package": "echo 'package not yet implemented'",
+    "ship": "npm run build && npm run check && npm run package"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.7.0",
+    "vite": "^5.4.0",
+    "terser": "^5.0.0"
+  }
+}

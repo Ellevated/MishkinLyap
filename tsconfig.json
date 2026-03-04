@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@config/*": ["src/config/*"],
+      "@game/*": ["src/game/*"],
+      "@scenes/*": ["src/scenes/*"],
+      "@objects/*": ["src/objects/*"],
+      "@sdk/*": ["src/sdk/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/global.d.ts"]
+}

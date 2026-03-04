@@ -22,3 +22,7 @@ Thumbs.db
 
 # DLD local artifacts
 /ai/
+
+# Build output
+dist/
+*.zip
