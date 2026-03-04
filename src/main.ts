@@ -11,9 +11,13 @@ import { GAME } from './config/GameConfig';
 import type { IPlatformBridge } from './sdk/IGamePlatform';
 import { YandexPlatform } from './sdk/YandexPlatform';
 import { MockPlatform } from './sdk/MockPlatform';
+import { PreloadScene } from './scenes/PreloadScene';
+import { MenuScene } from './scenes/MenuScene';
+import { GameScene } from './scenes/GameScene';
+import { GameOverScene } from './scenes/GameOverScene';
 
 function logError(context: string, err: unknown): void {
-  console.error(`[Zverata] ${context}:`, err);
+  console.error(`[MishkinLyap] ${context}:`, err);
 }
 
 // Global error handlers
@@ -53,7 +57,7 @@ async function boot(): Promise<void> {
         debug: __DEV__,
       },
     },
-    scene: [],
+    scene: [PreloadScene, MenuScene, GameScene, GameOverScene],
     callbacks: {
       preBoot: (game) => {
         game.registry.set('bridge', bridge);
