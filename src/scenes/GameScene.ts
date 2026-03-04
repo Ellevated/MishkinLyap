@@ -61,6 +61,24 @@ export class GameScene extends Phaser.Scene {
     this.inputHandler.enable();
     this.bridge?.gameplayStart();
 
+    // Visual container walls
+    const bounds = this.physicsManager.getContainerBounds();
+    this.add.rectangle(
+      GAME.CONTAINER_WALL_THICKNESS / 2, (bounds.top + GAME.HEIGHT) / 2,
+      GAME.CONTAINER_WALL_THICKNESS, GAME.HEIGHT - bounds.top,
+      0xd6c6a9,
+    ).setOrigin(0.5);
+    this.add.rectangle(
+      GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS / 2, (bounds.top + GAME.HEIGHT) / 2,
+      GAME.CONTAINER_WALL_THICKNESS, GAME.HEIGHT - bounds.top,
+      0xd6c6a9,
+    ).setOrigin(0.5);
+    this.add.rectangle(
+      GAME.WIDTH / 2, GAME.HEIGHT - GAME.CONTAINER_WALL_THICKNESS / 2,
+      GAME.WIDTH, GAME.CONTAINER_WALL_THICKNESS,
+      0xd6c6a9,
+    ).setOrigin(0.5);
+
     // UI: score display
     this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', {
       fontSize: '48px',
@@ -102,30 +120,69 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onMerge(result: MergeResult): void {
-    this.spawner.destroy(result.removedA);
-    this.spawner.destroy(result.removedB);
-    const newAnimal = this.spawner.spawnAtMerge(
-      result.mergeX, result.mergeY, result.newTier,
-    );
-    this.score.addScore(result.scoreAwarded);
+    const { mergeX, mergeY } = result;
 
-    // Merge animation: scale bounce
+    // Squash old animals before destroy
     this.tweens.add({
-      targets: newAnimal,
-      scaleX: { from: 0, to: 1.2 },
-      scaleY: { from: 0, to: 1.2 },
+      targets: [result.removedA, result.removedB],
+      scaleX: 0,
+      scaleY: 0,
       duration: 100,
-      ease: 'Back.easeOut',
+      ease: 'Power2',
       onComplete: () => {
-        this.tweens.add({
-          targets: newAnimal,
-          scaleX: 1,
-          scaleY: 1,
-          duration: 100,
-          ease: 'Power2',
-        });
+        this.spawner.destroy(result.removedA);
+        this.spawner.destroy(result.removedB);
       },
     });
+
+    // Burst particles at merge point
+    this.emitMergeParticles(mergeX, mergeY);
+
+    // Delayed new animal bounce-in
+    this.time.delayedCall(120, () => {
+      const newAnimal = this.spawner.spawnAtMerge(mergeX, mergeY, result.newTier);
+      this.score.addScore(result.scoreAwarded);
+
+      this.tweens.add({
+        targets: newAnimal,
+        scaleX: { from: 0, to: 1.2 },
+        scaleY: { from: 0, to: 1.2 },
+        duration: 100,
+        ease: 'Back.easeOut',
+        onComplete: () => {
+          this.tweens.add({
+            targets: newAnimal,
+            scaleX: 1,
+            scaleY: 1,
+            duration: 100,
+            ease: 'Power2',
+          });
+        },
+      });
+    });
+  }
+
+  /** Organic merge particles — leaves, flowers, hearts in brand colors */
+  private emitMergeParticles(x: number, y: number): void {
+    const colors = [0x5a8c3c, 0xd4a24c, 0xc44832]; // forest, ochre, red
+    const count = 7;
+    for (let i = 0; i < count; i++) {
+      const color = colors[i % colors.length];
+      const particle = this.add.circle(x, y, Phaser.Math.Between(3, 6), color);
+      const angle = (Math.PI * 2 / count) * i;
+      const dist = Phaser.Math.Between(30, 60);
+      this.tweens.add({
+        targets: particle,
+        x: x + Math.cos(angle) * dist,
+        y: y + Math.sin(angle) * dist,
+        alpha: 0,
+        scaleX: 0.3,
+        scaleY: 0.3,
+        duration: 400,
+        ease: 'Power2',
+        onComplete: () => particle.destroy(),
+      });
+    }
   }
 
   private onScoreUpdated(data: { score: number }): void {
