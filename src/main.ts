@@ -41,7 +41,7 @@ async function boot(): Promise<void> {
     width: GAME.WIDTH,
     height: GAME.HEIGHT,
     parent: 'game',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#F5EDD8',
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,

@@ -11,7 +11,7 @@ import { createWriteStream, existsSync, statSync } from 'fs';
 import { join } from 'path';
 
 const DIST = 'dist';
-const OUTPUT = 'zverata.zip';
+const OUTPUT = 'mishkin-lyap.zip';
 
 if (!existsSync(DIST)) {
   console.error('❌ dist/ directory not found. Run "npm run build" first.');

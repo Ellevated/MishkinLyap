@@ -12,18 +12,6 @@ import type { AnimalConfig } from '../config/GameConfig';
 
 const SETTLED_VELOCITY_THRESHOLD = 0.3;
 
-// Fallback colors for placeholder circles (FTR-006 will replace with sprites)
-const TIER_COLORS: readonly number[] = [
-  0xffd93d, // 1: hamster — yellow
-  0xff8fa3, // 2: rabbit — pink
-  0xb5838d, // 3: kitten — mauve
-  0x6d6875, // 4: cat — grey
-  0xa2d2ff, // 5: dog — blue
-  0xff6b35, // 6: fox — orange
-  0x2b2d42, // 7: panda — dark
-  0x8b4513, // 8: bear — brown
-];
-
 export class Animal extends Phaser.GameObjects.Container {
   public readonly tier: number;
   public readonly config: AnimalConfig;
@@ -37,20 +25,23 @@ export class Animal extends Phaser.GameObjects.Container {
     this.tier = tier;
     this.config = ANIMALS[tier - 1];
     const radius = this.config.radius;
-    const color = TIER_COLORS[tier - 1] ?? 0xffffff;
-
-    // Visual: colored circle placeholder
-    const circle = scene.add.circle(0, 0, radius, color);
-    circle.setStrokeStyle(2, 0xffffff, 0.5);
-    this.add(circle);
-
-    // Tier label
-    const label = scene.add.text(0, 0, String(tier), {
-      fontSize: `${Math.max(16, radius * 0.6)}px`,
-      color: '#ffffff',
-      fontStyle: 'bold',
-    }).setOrigin(0.5);
-    this.add(label);
+    // Visual: sprite if loaded, fallback to colored circle
+    if (scene.textures.exists(this.config.key)) {
+      const sprite = scene.add.image(0, 0, this.config.key);
+      sprite.setDisplaySize(radius * 2, radius * 2);
+      this.add(sprite);
+    } else {
+      const circle = scene.add.circle(0, 0, radius, this.config.color);
+      circle.setStrokeStyle(2, 0x3d2b1f, 0.3);
+      this.add(circle);
+      const label = scene.add.text(0, 0, String(tier), {
+        fontSize: `${Math.max(16, radius * 0.6)}px`,
+        color: '#3D2B1F',
+        fontFamily: 'Marmelad, sans-serif',
+        fontStyle: 'bold',
+      }).setOrigin(0.5);
+      this.add(label);
+    }
 
     scene.add.existing(this);
 

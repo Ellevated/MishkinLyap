@@ -1,9 +1,9 @@
 {
-  "name": "zverata",
+  "name": "mishkin-lyap",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Зверята: Слияние — casual drop-merge game for Yandex Games",
+  "description": "Мишкин Ляп — casual drop-merge game for Yandex Games",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
