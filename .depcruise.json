@@ -1,0 +1,8 @@
+{
+  "forbidden": [
+    { "name": "config-no-import-scenes", "from": {"path":"src/config"}, "to": {"path":"src/scenes"} },
+    { "name": "game-no-import-scenes",   "from": {"path":"src/game"},   "to": {"path":"src/scenes"} },
+    { "name": "sdk-no-import-game",      "from": {"path":"src/sdk"},    "to": {"path":"src/game"} },
+    { "name": "objects-no-import-scenes", "from": {"path":"src/objects"},"to": {"path":"src/scenes"} }
+  ]
+}
