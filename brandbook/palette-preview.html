@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Зверята — Palette & Font Directions</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=PT+Sans:wght@400;700&family=Comfortaa:wght@400;600;700&family=Pacifico&family=Marmelad&family=Rubik+Bubbles&display=swap">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #e8e0d0; padding: 32px; color: #3D2B1F; }
+  h1 { text-align: center; margin-bottom: 12px; font-size: 28px; }
+  .subtitle { text-align: center; color: #8B6040; margin-bottom: 40px; font-size: 16px; }
+
+  .directions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1400px; margin: 0 auto 60px; }
+  .direction { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(61,43,31,0.1); }
+  .direction h2 { font-size: 20px; margin-bottom: 4px; }
+  .direction .mood { color: #8B6040; font-size: 13px; margin-bottom: 16px; line-height: 1.4; }
+
+  .swatch-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .swatch { width: 56px; height: 56px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); }
+  .swatch-label { font-size: 10px; color: #8B6040; text-align: center; margin-top: 3px; }
+  .swatch-group { text-align: center; }
+  .section-label { font-size: 12px; font-weight: 700; color: #3D2B1F; margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .sample-ui { border-radius: 12px; padding: 20px; margin-top: 16px; }
+  .sample-btn { display: inline-block; padding: 10px 28px; border-radius: 24px; color: white; font-weight: 700; font-size: 16px; border: none; cursor: pointer; }
+  .sample-text { font-size: 18px; margin: 8px 0; font-weight: 600; }
+  .sample-score { font-size: 36px; font-weight: 800; margin: 4px 0; }
+  .sample-caption { font-size: 14px; opacity: 0.7; }
+
+  /* Font section */
+  .font-section { max-width: 1400px; margin: 0 auto 60px; }
+  .font-section h2 { text-align: center; margin-bottom: 32px; font-size: 24px; }
+  .font-directions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .font-option { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(61,43,31,0.1); }
+  .font-option h3 { font-size: 16px; margin-bottom: 4px; }
+  .font-option .font-desc { color: #8B6040; font-size: 13px; margin-bottom: 16px; }
+  .font-sample-title { font-size: 36px; font-weight: 700; margin-bottom: 8px; color: #3D2B1F; }
+  .font-sample-h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #3D2B1F; }
+  .font-sample-body { font-size: 18px; line-height: 1.5; margin-bottom: 8px; color: #4A3728; }
+  .font-sample-caption { font-size: 14px; color: #8B6040; }
+  .font-sample-score { font-size: 48px; font-weight: 800; margin: 8px 0; }
+
+  .badge { display: inline-block; background: #D4A24C; color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; margin-bottom: 12px; }
+
+  /* Animal chain preview */
+  .animal-chain { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .animal-circle { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid rgba(0,0,0,0.1); }
+</style>
+</head>
+<body>
+
+<h1>Зверята — Выбери палитру</h1>
+<p class="subtitle">Направление: Советская детская иллюстрация 1970-х. Три варианта внутри стиля.</p>
+
+<div class="directions">
+
+  <!-- PALETTE A: Charushin -->
+  <div class="direction">
+    <h2>A: Чарушин</h2>
+    <p class="mood">Акварельный, природный, сдержанный, тёплый, тактильный. Как иллюстрация из книги про лесных зверей.</p>
+
+    <div class="section-label">Primary</div>
+    <div class="swatch-row">
+      <div class="swatch-group">
+        <div class="swatch" style="background: #C8943C;"></div>
+        <div class="swatch-label">#C8943C<br>Amber Fur</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #DEBA6E;"></div>
+        <div class="swatch-label">Light</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #9A6F28;"></div>
+        <div class="swatch-label">Dark</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #D4A090;"></div>
+        <div class="swatch-label">Accent<br>Dusty Rose</div>
+      </div>
+    </div>
+
+    <div class="section-label">Neutrals</div>
+    <div class="swatch-row">
+      <div class="swatch-group">
+        <div class="swatch" style="background: #F5EDD8;"></div>
+        <div class="swatch-label">50</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #E8D9B8;"></div>
+        <div class="swatch-label">200</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #8B6040;"></div>
+        <div class="swatch-label">500</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #3D2B1F;"></div>
+        <div class="swatch-label">900</div>
+      </div>
+    </div>
+
+    <div class="section-label">Животные</div>
+    <div class="swatch-row">
+      <div class="swatch-group"><div class="swatch" style="background: #5C7A4A; width:40px; height:40px;"></div><div class="swatch-label">Лес</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #8B6040; width:40px; height:40px;"></div><div class="swatch-label">Мех</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #B07850; width:40px; height:40px;"></div><div class="swatch-label">Глина</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #7A9EC4; width:40px; height:40px;"></div><div class="swatch-label">Небо</div></div>
+    </div>
+
+    <div class="sample-ui" style="background: #F5EDD8;">
+      <div class="sample-score" style="color: #3D2B1F; font-family: 'Nunito';">1,240</div>
+      <div class="sample-text" style="color: #3D2B1F; font-family: 'Nunito';">Отличная игра!</div>
+      <div class="sample-btn" style="background: #C8943C;">Играть ещё</div>
+      <div class="sample-caption" style="color: #8B6040; margin-top: 8px;">Тёплый, как старая книжка</div>
+    </div>
+  </div>
+
+  <!-- PALETTE B: Suteev -->
+  <div class="direction">
+    <h2>B: Сутеев</h2>
+    <p class="mood">Яркий, радостный, чистый, мультяшный, дружелюбный. Как страница из "Кто сказал мяу?" — насыщенные цвета, жирные контуры.</p>
+
+    <div class="section-label">Primary</div>
+    <div class="swatch-row">
+      <div class="swatch-group">
+        <div class="swatch" style="background: #C03228;"></div>
+        <div class="swatch-label">#C03228<br>Cherry</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #E05848;"></div>
+        <div class="swatch-label">Light</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #8C2018;"></div>
+        <div class="swatch-label">Dark</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #F0B832;"></div>
+        <div class="swatch-label">Accent<br>Sunflower</div>
+      </div>
+    </div>
+
+    <div class="section-label">Neutrals</div>
+    <div class="swatch-row">
+      <div class="swatch-group">
+        <div class="swatch" style="background: #FFF8E7;"></div>
+        <div class="swatch-label">50</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #F0E6C8;"></div>
+        <div class="swatch-label">200</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #7A6840;"></div>
+        <div class="swatch-label">500</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #2E1E10;"></div>
+        <div class="swatch-label">900</div>
+      </div>
+    </div>
+
+    <div class="section-label">Животные</div>
+    <div class="swatch-row">
+      <div class="swatch-group"><div class="swatch" style="background: #5A8C3C; width:40px; height:40px;"></div><div class="swatch-label">Лист</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #7AAEC8; width:40px; height:40px;"></div><div class="swatch-label">Небо</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #E88C28; width:40px; height:40px;"></div><div class="swatch-label">Лиса</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #9B6BA0; width:40px; height:40px;"></div><div class="swatch-label">Ягода</div></div>
+    </div>
+
+    <div class="sample-ui" style="background: #FFF8E7;">
+      <div class="sample-score" style="color: #2E1E10; font-family: 'Nunito';">1,240</div>
+      <div class="sample-text" style="color: #2E1E10; font-family: 'Nunito';">Отличная игра!</div>
+      <div class="sample-btn" style="background: #C03228;">Играть ещё</div>
+      <div class="sample-caption" style="color: #7A6840; margin-top: 8px;">Яркий, как мультик</div>
+    </div>
+  </div>
+
+  <!-- PALETTE C: Blend (recommended) -->
+  <div class="direction">
+    <span class="badge">Рекомендация</span>
+    <h2>C: Бленд</h2>
+    <p class="mood">Чарушин-фоны + Сутеев-акценты. Тёплая бумага с яркими зверятами. Контраст мягкого мира и живых персонажей.</p>
+
+    <div class="section-label">Primary</div>
+    <div class="swatch-row">
+      <div class="swatch-group">
+        <div class="swatch" style="background: #D4A24C;"></div>
+        <div class="swatch-label">#D4A24C<br>Ochre</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #E8C47A;"></div>
+        <div class="swatch-label">Light</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #A07830;"></div>
+        <div class="swatch-label">Dark</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #C44832;"></div>
+        <div class="swatch-label">Accent<br>Soviet Red</div>
+      </div>
+    </div>
+
+    <div class="section-label">Neutrals</div>
+    <div class="swatch-row">
+      <div class="swatch-group">
+        <div class="swatch" style="background: #F5EDD8;"></div>
+        <div class="swatch-label">50</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #EDE0C4;"></div>
+        <div class="swatch-label">200</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #8B6040;"></div>
+        <div class="swatch-label">500</div>
+      </div>
+      <div class="swatch-group">
+        <div class="swatch" style="background: #3D2B1F;"></div>
+        <div class="swatch-label">900</div>
+      </div>
+    </div>
+
+    <div class="section-label">Животные (Сутеев-палитра)</div>
+    <div class="swatch-row">
+      <div class="swatch-group"><div class="swatch" style="background: #C03228; width:40px; height:40px;"></div><div class="swatch-label">Вишня</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #F0B832; width:40px; height:40px;"></div><div class="swatch-label">Солнце</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #5A8C3C; width:40px; height:40px;"></div><div class="swatch-label">Лист</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #7AAEC8; width:40px; height:40px;"></div><div class="swatch-label">Небо</div></div>
+      <div class="swatch-group"><div class="swatch" style="background: #E88C28; width:40px; height:40px;"></div><div class="swatch-label">Лиса</div></div>
+    </div>
+
+    <div class="sample-ui" style="background: #F5EDD8;">
+      <div class="sample-score" style="color: #3D2B1F; font-family: 'Nunito';">1,240</div>
+      <div class="sample-text" style="color: #3D2B1F; font-family: 'Nunito';">Отличная игра!</div>
+      <div class="sample-btn" style="background: #D4A24C;">Играть ещё</div>
+      <div class="sample-caption" style="color: #8B6040; margin-top: 8px;">Мягкий мир, яркие зверята</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FONT SECTION -->
+<div class="font-section">
+  <h2>Шрифтовые пары</h2>
+  <p class="subtitle">Каждая пара показана с русским текстом в контексте игры</p>
+
+  <div class="font-directions">
+
+    <!-- FONT A: Safe -->
+    <div class="font-option">
+      <h3>A: Надёжный</h3>
+      <p class="font-desc">Nunito (display) + PT Sans (body). Google Fonts, отличная кириллица. Округлый, читаемый.</p>
+
+      <div style="background: #F5EDD8; padding: 20px; border-radius: 12px;">
+        <div class="font-sample-title" style="font-family: 'Nunito'; color: #3D2B1F;">Зверята</div>
+        <div class="font-sample-score" style="font-family: 'Nunito'; color: #D4A24C;">8,450</div>
+        <div class="font-sample-h2" style="font-family: 'Nunito'; color: #3D2B1F;">Отличная игра!</div>
+        <div class="font-sample-body" style="font-family: 'PT Sans'; color: #4A3728;">
+          Роняй зверят, соединяй одинаковых — собери мишку!
+        </div>
+        <div class="font-sample-caption" style="font-family: 'PT Sans'; color: #8B6040;">
+          Рекорд: 12,340 | Собрано: 5 из 8
+        </div>
+      </div>
+    </div>
+
+    <!-- FONT B: Distinctive -->
+    <div class="font-option">
+      <span class="badge">Рекомендация</span>
+      <h3>B: Характерный</h3>
+      <p class="font-desc">Marmelad (display) + Nunito (body). Marmelad — мягкий, рукодельный кириллический шрифт. Уникальный.</p>
+
+      <div style="background: #F5EDD8; padding: 20px; border-radius: 12px;">
+        <div class="font-sample-title" style="font-family: 'Marmelad', sans-serif; color: #3D2B1F;">Зверята</div>
+        <div class="font-sample-score" style="font-family: 'Marmelad', sans-serif; color: #D4A24C;">8,450</div>
+        <div class="font-sample-h2" style="font-family: 'Marmelad', sans-serif; color: #3D2B1F;">Отличная игра!</div>
+        <div class="font-sample-body" style="font-family: 'Nunito'; color: #4A3728;">
+          Роняй зверят, соединяй одинаковых — собери мишку!
+        </div>
+        <div class="font-sample-caption" style="font-family: 'Nunito'; color: #8B6040;">
+          Рекорд: 12,340 | Собрано: 5 из 8
+        </div>
+      </div>
+    </div>
+
+    <!-- FONT C: Experimental -->
+    <div class="font-option">
+      <h3>C: Экспериментальный</h3>
+      <p class="font-desc">Comfortaa (display) + Nunito (body). Comfortaa — геометрически-мягкий, современная интерпретация ретро.</p>
+
+      <div style="background: #F5EDD8; padding: 20px; border-radius: 12px;">
+        <div class="font-sample-title" style="font-family: 'Comfortaa', sans-serif; color: #3D2B1F;">Зверята</div>
+        <div class="font-sample-score" style="font-family: 'Comfortaa', sans-serif; color: #D4A24C;">8,450</div>
+        <div class="font-sample-h2" style="font-family: 'Comfortaa', sans-serif; color: #3D2B1F;">Отличная игра!</div>
+        <div class="font-sample-body" style="font-family: 'Nunito'; color: #4A3728;">
+          Роняй зверят, соединяй одинаковых — собери мишку!
+        </div>
+        <div class="font-sample-caption" style="font-family: 'Nunito'; color: #8B6040;">
+          Рекорд: 12,340 | Собрано: 5 из 8
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

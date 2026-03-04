@@ -1,0 +1,133 @@
+/* ============================================
+   Brand Tokens: Зверята (Zverata)
+   Generated: 2026-03-04 by /brandbook
+
+   Usage: @import "brand-tokens.css" in your main CSS
+   Tailwind v4: These integrate with @theme automatically
+
+   Palette: C (Blend) — Charushin backgrounds + Suteev accents
+   Typography: Marmelad (display) + Nunito (body)
+   Archetype: Innocent — gentle, warm, cozy
+   ============================================ */
+
+@theme {
+  /* --- BRAND COLORS (OKLCH-first) --- */
+  --color-brand: oklch(74% 0.12 75);           /* #D4A24C Ochre */
+  --color-brand-light: oklch(83% 0.10 80);     /* #E8C47A */
+  --color-brand-dark: oklch(52% 0.11 70);      /* #8A6420 */
+  --color-accent: oklch(52% 0.17 28);          /* #C44832 Soviet Red */
+
+  /* --- NEUTRALS (Cream-Warm) --- */
+  --color-neutral-50: oklch(95% 0.03 85);      /* #F5EDD8 Cream Paper */
+  --color-neutral-100: oklch(93% 0.04 82);     /* #F0E5CA Warm Linen */
+  --color-neutral-200: oklch(91% 0.04 80);     /* #EDE0C4 Birch Bark */
+  --color-neutral-300: oklch(83% 0.04 78);     /* #D6C6A9 Sand */
+  --color-neutral-500: oklch(52% 0.08 60);     /* #8B6040 Warm Brown */
+  --color-neutral-700: oklch(32% 0.05 50);     /* #4A3728 Charcoal */
+  --color-neutral-900: oklch(27% 0.05 45);     /* #3D2B1F Ink Brown */
+
+  /* --- SEMANTIC --- */
+  --color-success: oklch(52% 0.12 135);        /* #4A7A30 Forest Dark */
+  --color-error: oklch(52% 0.17 28);           /* #C44832 Soviet Red */
+  --color-warning: oklch(80% 0.14 85);         /* #F0B832 Sunflower */
+  --color-info: oklch(54% 0.08 230);           /* #4A7A9C Sky Deep */
+
+  /* --- SEMANTIC MAPPED --- */
+  --color-bg: var(--color-neutral-50);
+  --color-surface: var(--color-neutral-100);
+  --color-border: var(--color-neutral-300);
+  --color-text: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-500);
+  --color-cta: var(--color-brand);
+  --color-cta-hover: var(--color-brand-light);
+  --color-cta-active: var(--color-brand-dark);
+  --color-cta-text: var(--color-neutral-900);   /* Dark text on ochre CTA */
+
+  /* --- ANIMAL TIER COLORS (Suteev palette) --- */
+  --color-tier-1: oklch(80% 0.14 85);          /* #F0B832 Hamster/Gold */
+  --color-tier-2: oklch(73% 0.06 230);         /* #8BAFC7 Bunny/Sky */
+  --color-tier-3: oklch(68% 0.14 65);          /* #E88C28 Kitten/Orange */
+  --color-tier-4: oklch(54% 0.10 310);         /* #9B6BA0 Cat/Purple */
+  --color-tier-5: oklch(60% 0.10 50);          /* #C17A56 Puppy/Terracotta */
+  --color-tier-6: oklch(48% 0.17 25);          /* #C03228 Fox/Cherry */
+  --color-tier-7: oklch(27% 0.05 45);          /* #3D2B1F Panda/Ink */
+  --color-tier-8: oklch(57% 0.12 140);         /* #5A8C3C Bear/Forest */
+
+  /* --- TYPOGRAPHY --- */
+  --font-display: "Marmelad", "Comfortaa", "Nunito", sans-serif;
+  --font-body: "Nunito", "PT Sans", system-ui, sans-serif;
+
+  --text-score: 3rem;       /* 48px */
+  --text-h1: 2.25rem;       /* 36px */
+  --text-h2: 1.75rem;       /* 28px */
+  --text-h3: 1.375rem;      /* 22px */
+  --text-body: 1.125rem;    /* 18px — enlarged for 55+ audience */
+  --text-button: 1.125rem;  /* 18px */
+  --text-caption: 1rem;     /* 16px */
+  --text-small: 0.875rem;   /* 14px — absolute minimum */
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  /* --- SPACING --- */
+  --space-xs: 0.25rem;    /* 4px */
+  --space-sm: 0.5rem;     /* 8px */
+  --space-md: 1rem;       /* 16px */
+  --space-lg: 1.5rem;     /* 24px */
+  --space-xl: 2rem;       /* 32px */
+  --space-2xl: 3rem;      /* 48px */
+
+  /* --- RADIUS (Innocent archetype = soft, rounded) --- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* --- SHADOWS (warm-tinted) --- */
+  --shadow-sm: 0 1px 2px oklch(27% 0.05 45 / 0.06);
+  --shadow-md: 0 4px 8px oklch(27% 0.05 45 / 0.08);
+  --shadow-lg: 0 8px 16px oklch(27% 0.05 45 / 0.12);
+
+  /* --- MOTION (Innocent archetype = gentle, soft) --- */
+  --motion-duration-instant: 60ms;
+  --motion-duration-fast: 150ms;
+  --motion-duration-normal: 300ms;
+  --motion-duration-slow: 500ms;
+  --motion-duration-intro: 2000ms;
+
+  --motion-easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-easing-enter: cubic-bezier(0, 0, 0.2, 1);
+  --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --motion-stagger-delay: 50ms;
+
+  /* --- TOUCH TARGETS (55+ accessibility) --- */
+  --touch-target-min: 48px;
+  --touch-target-spacing: 8px;
+}
+
+/* --- DARK MODE OVERRIDES --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: oklch(20% 0.04 45);             /* #2A1E14 */
+    --color-surface: oklch(27% 0.05 45);         /* #3D2B1F */
+    --color-border: oklch(38% 0.06 50);          /* #5A4030 */
+    --color-text: oklch(95% 0.03 85);            /* #F5EDD8 */
+    --color-text-secondary: oklch(76% 0.06 70);  /* #C8A878 */
+    --color-cta: oklch(78% 0.12 78);             /* #E8B860 slightly lighter */
+    --color-cta-text: oklch(20% 0.04 45);        /* Dark text stays dark */
+  }
+}
+
+/* --- REDUCED MOTION --- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-instant: 0ms;
+    --motion-duration-fast: 0ms;
+    --motion-duration-normal: 0ms;
+    --motion-duration-slow: 0ms;
+    --motion-duration-intro: 0ms;
+  }
+}
