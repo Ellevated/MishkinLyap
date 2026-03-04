@@ -1,4 +1,4 @@
-# Store Assets: Zverata (Зверята)
+# Store Assets: Мишкин Ляп (Mishkin Lyap)
 
 **Generated:** 2026-03-04
 **Platform:** Яндекс Игры
@@ -52,7 +52,7 @@
 ### RU Description
 
 ```
-Зверята — уютная головоломка для всех возрастов!
+Мишкин Ляп — уютная головоломка для всех возрастов!
 
 Роняй милых зверят сверху и соединяй одинаковых: два хомячка превращаются в зайчика, два зайчика — в котёнка, и так до огромного мишки!
 
@@ -66,13 +66,13 @@
 - Бесконечный геймплей
 - Таблица рекордов
 
-Играй на перерыве, в транспорте или перед сном. Зверята ждут!
+Играй на перерыве, в транспорте или перед сном. Мишка ждёт!
 ```
 
 ### EN Description
 
 ```
-Zverata — a cozy puzzle game for all ages!
+Mishkin Lyap — a cozy puzzle game for all ages!
 
 Drop cute animals from above and merge matching pairs: two hamsters become a bunny, two bunnies become a kitten, all the way up to a giant bear!
 
@@ -96,7 +96,7 @@ Play during breaks, on the bus, or before bed. The animals are waiting!
 | Spec | Value |
 |------|-------|
 | Size | 1200x630 (OG) / 800x600 (Yandex) |
-| Content | Медвежонок слева + 3-4 мелких зверька + "Зверята" wordmark |
+| Content | Медвежонок слева + 3-4 мелких зверька + "Мишкин Ляп" wordmark |
 | Background | Cream #F5EDD8 с мягкой текстурой бумаги |
 | Text | Marmelad font, Ink Brown #3D2B1F |
 | Forbidden | CTA кнопки, цены, бейджи наград |

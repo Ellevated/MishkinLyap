@@ -1,4 +1,4 @@
-# Motion System: Zverata (Зверята)
+# Motion System: Мишкин Ляп (Mishkin Lyap)
 
 **Generated:** 2026-03-04
 **Archetype:** Innocent — gentle, soft, comforting

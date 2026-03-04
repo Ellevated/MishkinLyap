@@ -1,4 +1,4 @@
-# Logo & Icon: Zverata (Зверята)
+# Logo & Icon: Мишкин Ляп (Mishkin Lyap)
 
 **Generated:** 2026-03-04
 
@@ -87,7 +87,7 @@ Colors: #D4A24C, #3D2B1F, #F5EDD8, #5A8C3C
 | Yandex Games Cover | 800x600 | PNG | Обложка в каталоге |
 | Favicon | 32x32, 16x16 | PNG/ICO | Упрощённая морда |
 | Logo Mark | Vector | SVG | Медвежонок полный |
-| Wordmark "Зверята" | Vector | SVG | Marmelad font |
+| Wordmark "Мишкин Ляп" | Vector | SVG | Marmelad font |
 | OG Image | 1200x630 | PNG | Social sharing |
 
 ### Yandex Games Specifics
@@ -106,9 +106,9 @@ Colors: #D4A24C, #3D2B1F, #F5EDD8, #5A8C3C
 
 | Variant | When to Use | Description |
 |---------|------------|-------------|
-| Full (icon + wordmark) | Splash screen, обложка | Медвежонок + "Зверята" в Marmelad |
+| Full (icon + wordmark) | Splash screen, обложка | Медвежонок + "Мишкин Ляп" в Marmelad |
 | Icon only | Каталог, favicon, маленькие места | Только медвежонок |
-| Wordmark only | Описание, юридические | "Зверята" в Marmelad |
+| Wordmark only | Описание, юридические | "Мишкин Ляп" в Marmelad |
 | Monochrome | Ink Brown (#3D2B1F) | Одноцветный для watermark |
 | On dark bg | Cream/ochre вариант | Инвертированные нейтралы |
 

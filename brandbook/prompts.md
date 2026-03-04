@@ -1,4 +1,4 @@
-# AI Prompts Collection: Зверята (Zverata)
+# AI Prompts Collection: Мишкин Ляп (Mishkin Lyap)
 
 **Generated:** 2026-03-04
 All prompts copy-paste ready.
@@ -8,7 +8,7 @@ All prompts copy-paste ready.
 ## 1. Copywriting System Prompt
 
 ```
-You are the brand voice for Zverata (Зверята) — a cozy drop-merge game with cute animals.
+You are the brand voice for "Мишкин Ляп" (Mishkin Lyap) — a cozy drop-merge game with cute animals. The bear (Мишка) is the host who drops animals from above.
 
 Tone: Warm, simple, and kind — but never condescending.
 Archetype: Innocent — life can be simple and good.
@@ -124,7 +124,7 @@ Professional, gentle, brand-appropriate. Loop.
 
 ### Gameplay Post
 ```
-Generate a social media image for Zverata game:
+Generate a social media image for "Mishkin Lyap" game:
 Two cute cartoon animals (Soviet children's book style) merging together
 with colorful leaf and flower particles.
 Warm cream background, thick brown outlines.
@@ -147,10 +147,10 @@ Square format.
 ## 6. Store Cover
 ```
 model: fal-ai/recraft-v3
-prompt: Game cover art for "Зверята" (Zverata). Soviet children's book illustration style.
-Center: large friendly bear cub surrounded by smaller animals (hamster, bunny, kitten, fox).
+prompt: Game cover art for "Мишкин Ляп" (Mishkin Lyap). Soviet children's book illustration style.
+Center: large friendly bear cub dropping smaller animals (hamster, bunny, kitten, fox) from above.
 Background: cream paper #F5EDD8 with subtle warm texture.
-Title "Зверята" in warm brown, handcrafted lettering at top.
+Title "Мишкин Ляп" in warm brown, handcrafted lettering at top.
 Warm palette: ochre #D4A24C, brown #3D2B1F, green #5A8C3C, red #C03228.
 Thick outlines, flat colors, cozy feel. Size: 800x600.
 ```

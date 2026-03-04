@@ -1,4 +1,4 @@
-# Visual System: Zverata (Зверята)
+# Visual System: Мишкин Ляп (Mishkin Lyap)
 
 **Generated:** 2026-03-04
 **Palette:** C: Бленд (Чарушин-фоны + Сутеев-акценты)

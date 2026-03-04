@@ -1,4 +1,4 @@
-# Brand Launch Checklist: Зверята (Zverata)
+# Brand Launch Checklist: Мишкин Ляп (Mishkin Lyap)
 
 **Generated:** 2026-03-04
 
@@ -49,21 +49,21 @@
 ## File Naming Convention
 
 ```
-zverata_{asset}_{variant}_{size}.{fmt}
+mishkin-lyap_{asset}_{variant}_{size}.{fmt}
 
-zverata_logo_full-color_1024x1024.png
-zverata_icon_variant-a_512x512.png
-zverata_icon_variant-b_512x512.png
-zverata_favicon_32x32.ico
-zverata_og-image_1200x630.png
-zverata_cover_yandex_800x600.png
-zverata_screenshot_01-hook_1280x720.png
-zverata_screenshot_02-merge_1280x720.png
-zverata_screenshot_03-chain_1280x720.png
-zverata_screenshot_04-score_1280x720.png
-zverata_screenshot_05-cta_1280x720.png
-zverata_sprite_tier1-hamster_256x256.png
-zverata_sprite_tier8-bear_256x256.png
+mishkin-lyap_logo_full-color_1024x1024.png
+mishkin-lyap_icon_variant-a_512x512.png
+mishkin-lyap_icon_variant-b_512x512.png
+mishkin-lyap_favicon_32x32.ico
+mishkin-lyap_og-image_1200x630.png
+mishkin-lyap_cover_yandex_800x600.png
+mishkin-lyap_screenshot_01-hook_1280x720.png
+mishkin-lyap_screenshot_02-merge_1280x720.png
+mishkin-lyap_screenshot_03-chain_1280x720.png
+mishkin-lyap_screenshot_04-score_1280x720.png
+mishkin-lyap_screenshot_05-cta_1280x720.png
+mishkin-lyap_sprite_tier1-hamster_256x256.png
+mishkin-lyap_sprite_tier8-bear_256x256.png
 ```
 
 ---
