@@ -1,0 +1,92 @@
+{
+  "model": "opus",
+  "alwaysThinkingEnabled": true,
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Edit",
+      "Write",
+      "Read",
+      "Grep",
+      "Glob",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "TodoWrite",
+      "NotebookEdit",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "mcp__exa__web_search_exa",
+      "mcp__exa__web_search_advanced_exa",
+      "mcp__exa__get_code_context_exa",
+      "mcp__exa__deep_search_exa",
+      "mcp__exa__crawling_exa",
+      "mcp__exa__company_research_exa",
+      "mcp__exa__deep_researcher_start",
+      "mcp__exa__deep_researcher_check"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/run-hook.mjs post-edit",
+            "timeout": 15000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/run-hook.mjs pre-bash",
+            "timeout": 5000
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/run-hook.mjs validate-spec-complete",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/run-hook.mjs pre-edit",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/run-hook.mjs prompt-guard",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/run-hook.mjs session-end",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
