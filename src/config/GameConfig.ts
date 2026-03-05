@@ -9,6 +9,7 @@
 export interface AnimalConfig {
   readonly tier: number;
   readonly name: string;
+  readonly nameRu: string;
   readonly radius: number;
   readonly score: number;
   readonly key: string;
@@ -16,14 +17,14 @@ export interface AnimalConfig {
 }
 
 export const ANIMALS: readonly AnimalConfig[] = [
-  { tier: 1, name: 'hamster', radius: 18, score: 2,  key: 'hamster', color: 0xf0b832 },
-  { tier: 2, name: 'bunny',   radius: 24, score: 6,  key: 'bunny',   color: 0x8bafc7 },
-  { tier: 3, name: 'kitten',  radius: 32, score: 12, key: 'kitten',  color: 0xe88c28 },
-  { tier: 4, name: 'cat',     radius: 40, score: 20, key: 'cat',     color: 0x9b6ba0 },
-  { tier: 5, name: 'puppy',   radius: 50, score: 30, key: 'puppy',   color: 0xc17a56 },
-  { tier: 6, name: 'fox',     radius: 60, score: 42, key: 'fox',     color: 0xc03228 },
-  { tier: 7, name: 'panda',   radius: 72, score: 56, key: 'panda',   color: 0x3d2b1f },
-  { tier: 8, name: 'bear',    radius: 85, score: 72, key: 'bear',    color: 0x5a8c3c },
+  { tier: 1, name: 'hamster', nameRu: 'Хомячок', radius: 18, score: 2,  key: 'hamster', color: 0xf0b832 },
+  { tier: 2, name: 'bunny',   nameRu: 'Зайчик',  radius: 24, score: 6,  key: 'bunny',   color: 0x8bafc7 },
+  { tier: 3, name: 'kitten',  nameRu: 'Котёнок',  radius: 32, score: 12, key: 'kitten',  color: 0xe88c28 },
+  { tier: 4, name: 'cat',     nameRu: 'Кошка',    radius: 40, score: 20, key: 'cat',     color: 0x9b6ba0 },
+  { tier: 5, name: 'puppy',   nameRu: 'Собачка',  radius: 50, score: 30, key: 'puppy',   color: 0xc17a56 },
+  { tier: 6, name: 'fox',     nameRu: 'Лисичка',  radius: 60, score: 42, key: 'fox',     color: 0xc03228 },
+  { tier: 7, name: 'panda',   nameRu: 'Панда',    radius: 72, score: 56, key: 'panda',   color: 0x3d2b1f },
+  { tier: 8, name: 'bear',    nameRu: 'Мишка',    radius: 85, score: 72, key: 'bear',    color: 0x5a8c3c },
 ] as const;
 
 /** Brand colors from brandbook */
@@ -107,8 +108,8 @@ export const JUICE = {
 } as const;
 
 export const VISUAL = {
-  /** Sprite scale overflow — ratio beyond physics circle. 1.0 = exact fit, 1.25 = 25% overflow */
-  SPRITE_OVERFLOW: 1.25,
+  /** Sprite scale overflow — ratio beyond physics circle. 1.0 = exact fit, 1.15 = 15% overflow */
+  SPRITE_OVERFLOW: 1.15,
 } as const;
 
 /** F-major pentatonic melody for BGM. Each entry: [frequency_Hz, duration_in_beats] */

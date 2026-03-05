@@ -50,20 +50,17 @@ export class GameOverScene extends Phaser.Scene {
     txt(this, w / 2, y, `Рекорд: ${Math.max(data.score, data.best)}`, '18px', BRAND.TEXT_SECONDARY);
     y += 28;
 
-    if (!data.isNewRecord && data.best > 0 && data.score > data.best * 0.8) {
+    if (!data.isNewRecord && data.best > data.score && data.score > data.best * 0.8) {
       txt(this, w / 2, y, `Почти рекорд! Не хватило ${data.best - data.score} очков`, '16px', '#C44832');
       y += 24;
     }
 
-    const tier = ANIMALS[data.highestTier - 1]?.name ?? '?';
-    txt(this, w / 2, y, `Мерджей: ${data.mergeCount}  |  Лучший: ${tier}`, '16px', BRAND.TEXT_SECONDARY);
+    const tierRu = ANIMALS[data.highestTier - 1]?.nameRu ?? '?';
+    txt(this, w / 2, y, `Мерджей: ${data.mergeCount}  |  Лучший: ${tierRu}`, '16px', BRAND.TEXT_SECONDARY);
     y += 24;
 
-    if (data.highestTier >= 4) {
-      txt(this, w / 2, y, `Лучший момент: ${ANIMALS[data.highestTier - 1]?.name ?? '?'}!`, '16px', '#D4A24C');
-      y += 24;
-    } else if (data.highestTier < 8) {
-      txt(this, w / 2, y, `До ${ANIMALS[data.highestTier]?.name ?? '?'} — совсем чуть-чуть!`, '16px', '#8B6040', BRAND.FONT_BODY, 'italic');
+    if (data.highestTier < 8) {
+      txt(this, w / 2, y, `До ${ANIMALS[data.highestTier]?.nameRu ?? '?'} — совсем чуть-чуть!`, '16px', '#8B6040', BRAND.FONT_BODY, 'italic');
       y += 24;
     }
 
@@ -73,7 +70,7 @@ export class GameOverScene extends Phaser.Scene {
     if (disc.length > 0 && disc.length < total) {
       const pct = disc.length / total;
       const next = ANIMALS.find((_, i) => !disc.includes(i + 1));
-      txt(this, w / 2, y, pct >= STATS_DISPLAY.GOAL_GRADIENT_THRESHOLD ? `Коллекция: ${disc.length}/${total} — почти все!` : `Коллекция: ${disc.length}/${total} · ${next?.name ?? ''}`, '14px', pct >= 0.6 ? '#D4A24C' : BRAND.TEXT_SECONDARY);
+      txt(this, w / 2, y, pct >= STATS_DISPLAY.GOAL_GRADIENT_THRESHOLD ? `Коллекция: ${disc.length}/${total} — почти все!` : `Коллекция: ${disc.length}/${total} · ${next?.nameRu ?? ''}`, '14px', pct >= 0.6 ? '#D4A24C' : BRAND.TEXT_SECONDARY);
       y += 24;
     }
     if ([10, 50, 100].includes(pd.career.gamesPlayed)) { txt(this, w / 2, y, `${pd.career.gamesPlayed}-я игра!`, '14px', '#D4A24C'); y += 24; }
@@ -82,7 +79,7 @@ export class GameOverScene extends Phaser.Scene {
     y += 38;
 
     if (data.canContinue) {
-      const cb = this.btn(w / 2, y, 'Продолжить 📺', 0x4a7a30, () => { cb.disableInteractive(); this.doContinue(bridge); });
+      const cb = this.btn(w / 2, y, 'Продолжить ▶️', 0x4a7a30, () => { cb.disableInteractive(); this.doContinue(bridge); });
       this.tweens.add({ targets: cb, scaleX: 1.05, scaleY: 1.05, duration: 500, yoyo: true, repeat: -1 });
       y += 60;
     }

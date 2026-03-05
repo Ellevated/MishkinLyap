@@ -109,12 +109,29 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.gameplayStart();
     this.events.once('shutdown', this.shutdown, this);
 
-    // Visual container walls
+    // Visual container walls — styled "wooden planks" overlay
     const bounds = this.physicsManager.getContainerBounds();
-    const wt = GAME.CONTAINER_WALL_THICKNESS, wallH = GAME.HEIGHT - bounds.top, wallY = (bounds.top + GAME.HEIGHT) / 2;
-    this.add.rectangle(wt / 2, wallY, wt, wallH, 0xd6c6a9).setOrigin(0.5);
-    this.add.rectangle(GAME.WIDTH - wt / 2, wallY, wt, wallH, 0xd6c6a9).setOrigin(0.5);
-    this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT - wt / 2, GAME.WIDTH, wt, 0xd6c6a9).setOrigin(0.5);
+    const wallH = GAME.HEIGHT - bounds.top, wallY = (bounds.top + GAME.HEIGHT) / 2;
+    const vw = 32; // visual wall width (wider than physics 20px)
+
+    // Left wall
+    this.add.rectangle(vw / 2, wallY, vw, wallH, 0x8b6040).setOrigin(0.5);
+    this.add.rectangle(vw - 1, wallY, 2, wallH, 0xa07850).setOrigin(0.5).setAlpha(0.6);
+    for (let gy = bounds.top; gy < GAME.HEIGHT; gy += 24) {
+      this.add.rectangle(vw * 0.4, gy, 1, 20, 0x7a5030).setOrigin(0.5).setAlpha(0.3);
+    }
+    // Right wall
+    this.add.rectangle(GAME.WIDTH - vw / 2, wallY, vw, wallH, 0x8b6040).setOrigin(0.5);
+    this.add.rectangle(GAME.WIDTH - vw + 1, wallY, 2, wallH, 0xa07850).setOrigin(0.5).setAlpha(0.6);
+    for (let gy = bounds.top; gy < GAME.HEIGHT; gy += 24) {
+      this.add.rectangle(GAME.WIDTH - vw * 0.4, gy, 1, 20, 0x7a5030).setOrigin(0.5).setAlpha(0.3);
+    }
+    // Bottom — earth + grass
+    this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT - 16, GAME.WIDTH, 32, 0x5a3e20).setOrigin(0.5);
+    for (let gx = 0; gx < GAME.WIDTH; gx += 16) {
+      const gh = 8 + Math.random() * 8;
+      this.add.rectangle(gx + 8, GAME.HEIGHT - 32 + (12 - gh) / 2, 10, gh, 0x4a7a30).setOrigin(0.5).setAlpha(0.8);
+    }
 
     // Seasonal effects
     const seasonMgr = this.registry.get('seasonManager') as SeasonManager | undefined;
@@ -129,7 +146,7 @@ export class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', { fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10);
     this.comboText = this.add.text(GAME.WIDTH / 2 + 80, 30, '', { fontSize: '32px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10).setAlpha(0);
     if (mode !== 'relaxation') {
-      this.add.line(0, 0, wt, GAME.GAME_OVER_LINE_Y, GAME.WIDTH - wt, GAME.GAME_OVER_LINE_Y, 0xc44832, 0.3).setOrigin(0).setDepth(10);
+      this.add.line(0, 0, GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, 0xc44832, 0.3).setOrigin(0).setDepth(10);
     }
     if (mode !== 'classic') {
       this.add.text(10, 10, mode === 'daily' ? 'Ежедневная' : 'Без стресса', { fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setDepth(10);
@@ -248,7 +265,7 @@ export class GameScene extends Phaser.Scene {
     const from = this.displayedScore, to = data.score; this.displayedScore = to;
     this.tweens.addCounter({ from, to, duration: 300, ease: 'Power2', onUpdate: (tween) => this.scoreText.setText(String(Math.round(tween.getValue() ?? to))) });
     this.tweens.add({ targets: this.scoreText, scaleX: 1.15, scaleY: 1.15, duration: 100, yoyo: true, ease: 'Power2' });
-    if (!this.sessionStats.isNewRecord && to > this.score.getBestScore() && this.score.getBestScore() > 0) { this.sessionStats.isNewRecord = true; this.effects.showNewRecordToast(); }
+    if (!this.sessionStats.isNewRecord && to > this.score.getBestScore()) { this.sessionStats.isNewRecord = true; this.effects.showNewRecordToast(); }
     if (to - from > 20) { this.scoreText.setColor('#D4A24C'); this.time.delayedCall(200, () => this.scoreText.setColor(BRAND.TEXT_INK)); }
     this.tutorial.onScoreReached(to);
   }
@@ -298,7 +315,7 @@ export class GameScene extends Phaser.Scene {
     this.missionTracker.reportGamePlayed();
     this.showAchievementToasts(this.achievements.reportGameEnd(this.score.getScore()));
     this.input.enabled = false;
-    this.scene.launch('GameOver', { score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats, canContinue: this.continuesUsed < ADS.MAX_CONTINUES_PER_GAME, mode });
+    this.scene.launch('GameOver', { score: this.score.getScore(), best: this.score.getBestScore(), mergeCount: this.sessionStats.mergeCount, highestTier: this.sessionStats.highestTier, isNewRecord, canContinue: this.continuesUsed < ADS.MAX_CONTINUES_PER_GAME, mode });
     this.scene.pause();
   }
 
@@ -311,13 +328,18 @@ export class GameScene extends Phaser.Scene {
 
   restartGame(): void { this.scene.restart(); }
 
+  private nextPreviewBg?: Phaser.GameObjects.Arc;
+
   private updateNextPreview(): void {
     if (this.nextPreview) this.nextPreview.destroy();
+    if (this.nextPreviewBg) this.nextPreviewBg.destroy();
     const cfg = ANIMALS[this.spawner.peekNextTier() - 1];
+    const px = GAME.WIDTH - 50, py = 30;
+    this.nextPreviewBg = this.add.circle(px, py, 28, 0xede0c4).setStrokeStyle(2, 0xd6c6a9).setDepth(9);
     if (this.textures.exists(cfg.key)) {
-      this.nextPreview = this.add.image(GAME.WIDTH - 50, 50, cfg.key).setDisplaySize(40, 40).setDepth(10);
+      this.nextPreview = this.add.image(px, py, cfg.key).setDisplaySize(48, 48).setDepth(10);
     } else {
-      this.nextPreview = this.add.circle(GAME.WIDTH - 50, 50, 20, cfg.color).setDepth(10) as any;
+      this.nextPreview = this.add.circle(px, py, 24, cfg.color).setDepth(10) as any;
     }
   }
 

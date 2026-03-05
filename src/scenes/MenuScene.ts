@@ -40,97 +40,118 @@ export class MenuScene extends Phaser.Scene {
     const { width: w, height: h } = this.scale;
     this.cameras.main.setBackgroundColor(BRAND.BG_CREAM);
 
-    // Title
-    this.add.text(w / 2, h * 0.18, 'Мишкин\nЛяп', {
-      fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY, align: 'center',
-    }).setOrigin(0.5);
-
-    // Season event banner
-    if (this.seasonMgr?.isEventActive()) {
-      const season = this.seasonMgr.getActiveSeason();
-      this.add.text(w / 2, h * 0.30, `${season.emoji} ${season.name} ${season.emoji}`, {
-        fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY,
-      }).setOrigin(0.5);
-      this.countdownText = this.add.text(w / 2, h * 0.34, '', {
-        fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
-      }).setOrigin(0.5);
-      this.add.text(w / 2, h * 0.37, `×${season.scoreMult} бонус к очкам!`, {
-        fontSize: '14px', color: '#D4A24C', fontFamily: BRAND.FONT_BODY,
-      }).setOrigin(0.5);
-    }
-
-    // Best score + challenge
-    const scoreManager = new ScoreManager(this);
-    const best = scoreManager.getBestScore();
-    const persisted = this.loadPersisted();
-    const career = persisted.career;
-    if (career.gamesPlayed >= STATS_DISPLAY.SHOW_CHALLENGE_MIN_GAMES && best > 0) {
-      this.add.text(w / 2, h * 0.35, `Побейте рекорд: ${best.toLocaleString()}!`, {
-        fontSize: '22px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
-      }).setOrigin(0.5);
-    } else if (best > 0) {
-      this.add.text(w / 2, h * 0.35, `Рекорд: ${best}`, {
-        fontSize: '22px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
-      }).setOrigin(0.5);
-    }
-    if (career.gamesPlayed >= STATS_DISPLAY.SHOW_INVESTMENT_MIN_GAMES) {
-      this.add.text(w / 2, h * 0.39, `${career.gamesPlayed} игр · ${career.totalMerges} мерджей`, {
-        fontSize: '13px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
-      }).setOrigin(0.5).setAlpha(0.7);
-    }
-
-    // Mode buttons
-    let y = 400;
-    btn(this, w / 2, y, 220, 52, 0xd4a24c, 'Играть', () => this.startGame('classic'));
-    y += 65;
-
-    btn(this, w / 2, y, 220, 52, 0xede0c4, 'Ежедневная', () => this.startGame('daily'));
-    const dailyBest = scoreManager.getDailyBest(this.getTodayString());
-    this.add.text(w / 2, y + 30, dailyBest > 0 ? `Рекорд: ${dailyBest}` : 'Новый день!', {
-      fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
-    }).setOrigin(0.5);
-    y += 75;
-
-    btn(this, w / 2, y, 220, 52, 0xede0c4, 'Без стресса', () => this.startGame('relaxation'));
-    y += 65;
-
-    // Secondary buttons
-    btn(this, w / 2, y, 200, 44, 0xede0c4, 'Зверята', () => this.scene.start('Bestiary'));
-    y += 52;
-    btn(this, w / 2, y, 200, 44, 0xede0c4, 'Рейтинг', () => this.scene.start('Leaderboard', { returnTo: 'Menu' }));
-    y += 52;
-    btn(this, w / 2, y, 200, 44, 0xede0c4, 'Задания', () => this.scene.start('Missions'));
-    y += 52;
-    btn(this, w / 2, y, 200, 44, 0xede0c4, 'Награды', () => this.scene.start('Achievements'));
-    y += 52;
-    const spinMgr = new SpinRewardManager();
-    const spinAvail = spinMgr.canFreeSpin() || spinMgr.canAdSpin();
-    const spinBtn = btn(this, w / 2, y, 200, 44, 0xede0c4, spinAvail ? 'Колесо ✨' : 'Колесо', () => this.scene.start('LuckySpin'));
-    if (spinAvail) this.tweens.add({ targets: spinBtn, scaleX: 1.03, scaleY: 1.03, duration: 600, yoyo: true, repeat: -1 });
-
-    // Skin picker (small circle next to mute)
+    // === Top bar: skin picker, mute, streak ===
     const skinMgr = new SkinManager();
-    const skinCircle = this.add.circle(w - 60, 36, 16, skinMgr.getActiveTint() || 0xF5EDD8)
+    const skinCircle = this.add.circle(36, 36, 16, skinMgr.getActiveTint() || 0xF5EDD8)
       .setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
     skinCircle.on('pointerup', () => this.showSkinPicker(w, h));
 
-    // Mute toggle
     const audio = new AudioManager();
     const muteBtn = this.add.text(w - 20, 20, audio.isMuted() ? '🔇' : '🔊', {
       fontSize: '32px',
     }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
     muteBtn.on('pointerup', () => { muteBtn.setText(audio.toggleMute() ? '🔇' : '🔊'); });
 
-    // Daily streak
     const streakMgr = new DailyStreakManager();
     const checkIn = streakMgr.checkIn();
     if (checkIn.streak > 0) {
-      this.add.text(w - 20, 60, `${checkIn.streak}`, {
+      this.add.text(w - 20, 60, `🔥${checkIn.streak}`, {
         fontSize: '20px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
       }).setOrigin(1, 0);
     }
-    if (checkIn.isNewDay) this.showStreakPopup(w, h, checkIn);
 
+    // === Title (zone 15-35%) ===
+    this.add.text(w / 2, h * 0.18, 'Мишкин\nЛяп', {
+      fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY, align: 'center',
+    }).setOrigin(0.5);
+
+    // === Dynamic Y accumulator from zone 35% ===
+    let y = h * 0.33;
+
+    // Season event banner (optional zone)
+    if (this.seasonMgr?.isEventActive()) {
+      const season = this.seasonMgr.getActiveSeason();
+      this.add.text(w / 2, y, `${season.emoji} ${season.name} ${season.emoji}`, {
+        fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(0.5);
+      y += 24;
+      this.countdownText = this.add.text(w / 2, y, '', {
+        fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5);
+      y += 20;
+      this.add.text(w / 2, y, `×${season.scoreMult} бонус к очкам!`, {
+        fontSize: '14px', color: '#D4A24C', fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5);
+      y += 28;
+    }
+
+    // Best score + challenge (zone after season)
+    const scoreManager = new ScoreManager(this);
+    const best = scoreManager.getBestScore();
+    const persisted = this.loadPersisted();
+    const career = persisted.career;
+    if (career.gamesPlayed >= STATS_DISPLAY.SHOW_CHALLENGE_MIN_GAMES && best > 0) {
+      this.add.text(w / 2, y, `Побейте рекорд: ${best.toLocaleString()}!`, {
+        fontSize: '22px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(0.5);
+      y += 30;
+    } else if (best > 0) {
+      this.add.text(w / 2, y, `Рекорд: ${best}`, {
+        fontSize: '22px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5);
+      y += 30;
+    }
+    if (career.gamesPlayed >= STATS_DISPLAY.SHOW_INVESTMENT_MIN_GAMES) {
+      this.add.text(w / 2, y, `${career.gamesPlayed} игр · ${career.totalMerges} мерджей`, {
+        fontSize: '13px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5).setAlpha(0.7);
+      y += 22;
+    }
+
+    // === Play mode buttons (main group) ===
+    y = Math.max(y + 16, h * 0.48);
+    btn(this, w / 2, y, 220, 52, 0xd4a24c, 'Играть', () => this.startGame('classic'));
+    y += 62;
+
+    btn(this, w / 2, y, 220, 52, 0xede0c4, 'Ежедневная', () => this.startGame('daily'));
+    const dailyBest = scoreManager.getDailyBest(this.getTodayString());
+    this.add.text(w / 2, y + 30, dailyBest > 0 ? `Рекорд: ${dailyBest}` : 'Новый день!', {
+      fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+    }).setOrigin(0.5);
+    y += 72;
+
+    btn(this, w / 2, y, 220, 52, 0xede0c4, 'Без стресса', () => this.startGame('relaxation'));
+    y += 32;
+
+    // === Visual separator between play and meta ===
+    y += 20;
+
+    // === Meta buttons (2x2 + 1 grid) ===
+    const gridCols = 2, gridGapX = 12, gridGapY = 12;
+    const metaBtnW = 104, metaBtnH = 44;
+    const metaItems: { label: string; action: () => void; highlight?: boolean }[] = [
+      { label: '🐾 Зверята', action: () => this.scene.start('Bestiary') },
+      { label: '🏆 Рейтинг', action: () => this.scene.start('Leaderboard', { returnTo: 'Menu' }) },
+      { label: '📋 Задания', action: () => this.scene.start('Missions') },
+      { label: '🎖️ Награды', action: () => this.scene.start('Achievements') },
+    ];
+
+    const spinMgr = new SpinRewardManager();
+    const spinAvail = spinMgr.canFreeSpin() || spinMgr.canAdSpin();
+
+    for (let i = 0; i < metaItems.length; i++) {
+      const col = i % gridCols, row = Math.floor(i / gridCols);
+      const mx = w / 2 + (col - 0.5) * (metaBtnW + gridGapX);
+      const my = y + row * (metaBtnH + gridGapY);
+      btn(this, mx, my, metaBtnW, metaBtnH, 0xede0c4, metaItems[i].label, metaItems[i].action);
+    }
+    y += Math.ceil(metaItems.length / gridCols) * (metaBtnH + gridGapY) + 8;
+
+    // Spin button (centered, full width)
+    const spinBtn = btn(this, w / 2, y, 220, 44, 0xede0c4, spinAvail ? '🎡 Колесо ✨' : '🎡 Колесо', () => this.scene.start('LuckySpin'));
+    if (spinAvail) this.tweens.add({ targets: spinBtn, scaleX: 1.03, scaleY: 1.03, duration: 600, yoyo: true, repeat: -1 });
+
+    if (checkIn.isNewDay) this.showStreakPopup(w, h, checkIn);
     this.bridge?.showBanner();
   }
 
