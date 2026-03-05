@@ -7,8 +7,8 @@
 
 import Phaser from 'phaser';
 import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY } from '../config/GameConfig';
-import type { MysteryRewardType } from '../config/GameConfig';
-import type { GameMode } from '../config/GameConfig';
+import type { MysteryRewardType, GameMode } from '../config/GameConfig';
+import type { SeasonManager } from '../game/SeasonManager';
 import { EVENTS } from '../config/GameEvents';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { PhysicsManager } from '../game/PhysicsManager';
@@ -58,6 +58,7 @@ export class GameScene extends Phaser.Scene {
   private undoAvailable = false;
   private undoTimer?: Phaser.Time.TimerEvent;
   private undoBtn?: Phaser.GameObjects.Text;
+  private seasonMult = 1;
   private sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
 
   constructor() { super('Game'); }
@@ -115,6 +116,15 @@ export class GameScene extends Phaser.Scene {
     this.add.rectangle(wt / 2, wallY, wt, wallH, 0xd6c6a9).setOrigin(0.5);
     this.add.rectangle(GAME.WIDTH - wt / 2, wallY, wt, wallH, 0xd6c6a9).setOrigin(0.5);
     this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT - wt / 2, GAME.WIDTH, wt, 0xd6c6a9).setOrigin(0.5);
+
+    // Seasonal effects
+    const seasonMgr = this.registry.get('seasonManager') as SeasonManager | undefined;
+    this.seasonMult = seasonMgr?.getScoreMultiplier() ?? 1;
+    const season = seasonMgr?.getActiveSeason();
+    if (season && season.particleType !== 'none' && this.textures.exists('particle')) {
+      this.add.particles(0, -10, 'particle', { x: { min: 0, max: GAME.WIDTH }, y: -10, speedY: { min: 30, max: 80 }, lifespan: 6000, quantity: 1, frequency: 500, tint: season.particleColor, scale: { start: 0.5, end: 0.2 }, alpha: { start: 0.6, end: 0 } }).setDepth(1);
+    }
+    if (season?.bgTint) this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT / 2, GAME.WIDTH, GAME.HEIGHT, season.bgTint, 0.08).setDepth(0);
 
     // UI
     this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', { fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10);
@@ -209,9 +219,9 @@ export class GameScene extends Phaser.Scene {
     // VFX
     this.effects.emitMergeParticles(mergeX, mergeY, comboCount);
     this.effects.emitFlash(mergeX, mergeY);
-    const finalScore = Math.round(result.scoreAwarded * multiplier * boostMult * goldenMult);
-    const label = multiplier > 1 || boostMult > 1 || goldenMult > 1
-      ? `+${finalScore} x${Math.round(multiplier * boostMult * goldenMult)}` : `+${finalScore}`;
+    const totalMult = multiplier * boostMult * goldenMult * this.seasonMult;
+    const finalScore = Math.round(result.scoreAwarded * totalMult);
+    const label = totalMult > 1 ? `+${finalScore} x${Math.round(totalMult)}` : `+${finalScore}`;
     this.effects.emitFloatingScore(mergeX, mergeY, label);
     if (reward) this.handleMysteryReward(reward, mergeX, mergeY);
 
@@ -244,8 +254,7 @@ export class GameScene extends Phaser.Scene {
     });
 
     if (!this.sessionStats.isNewRecord && to > this.score.getBestScore() && this.score.getBestScore() > 0) {
-      this.sessionStats.isNewRecord = true;
-      this.effects.showNewRecordToast();
+      this.sessionStats.isNewRecord = true; this.effects.showNewRecordToast();
     }
     if (to - from > 20) {
       this.scoreText.setColor('#D4A24C');
@@ -306,18 +315,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   continueAfterAd(): void {
-    const animals = [...this.spawner.getAnimals()];
-    for (const a of animals) {
-      if (a.body.position.y < GAME.GAME_OVER_LINE_Y + 50) this.spawner.destroy(a);
-    }
-    this.phase = 'playing';
-    this.gameOverTimer = 0;
-    this.continuesUsed++;
-    this.input.enabled = true;
-    this.merge.enable();
-    this.inputHandler.enable();
-    this.audio.startMusic();
-    this.bridge?.gameplayStart();
+    for (const a of [...this.spawner.getAnimals()]) { if (a.body.position.y < GAME.GAME_OVER_LINE_Y + 50) this.spawner.destroy(a); }
+    this.phase = 'playing'; this.gameOverTimer = 0; this.continuesUsed++;
+    this.input.enabled = true; this.merge.enable(); this.inputHandler.enable();
+    this.audio.startMusic(); this.bridge?.gameplayStart();
   }
 
   restartGame(): void { this.scene.restart(); }
@@ -335,8 +336,7 @@ export class GameScene extends Phaser.Scene {
   private showAchievementToasts(ids: string[]): void {
     for (const id of ids) {
       const ach = ACHIEVEMENTS.find(a => a.id === id);
-      if (!ach) continue;
-      this.flashText(GAME.WIDTH / 2, -30, `🏆 ${ach.name}!`, '#D4A24C', 22, { y: 8, hold: 1500 });
+      if (ach) this.flashText(GAME.WIDTH / 2, -30, `🏆 ${ach.name}!`, '#D4A24C', 22, { y: 8, hold: 1500 });
     }
   }
 

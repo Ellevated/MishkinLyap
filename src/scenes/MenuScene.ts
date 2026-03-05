@@ -14,6 +14,7 @@ import { ScoreManager } from '../game/ScoreManager';
 import { AudioManager } from '../game/AudioManager';
 import { DailyStreakManager } from '../game/DailyStreakManager';
 import { SpinRewardManager } from '../game/SpinRewardManager';
+import type { SeasonManager } from '../game/SeasonManager';
 
 const btn = (s: Phaser.Scene, x: number, y: number, w: number, h: number, color: number, label: string, onClick: () => void) => {
   const r = s.add.rectangle(x, y, w, h, color).setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
@@ -27,18 +28,35 @@ const btn = (s: Phaser.Scene, x: number, y: number, w: number, h: number, color:
 
 export class MenuScene extends Phaser.Scene {
   private bridge!: IPlatformBridge;
+  private countdownText?: Phaser.GameObjects.Text;
+  private seasonMgr?: SeasonManager;
 
   constructor() { super('Menu'); }
 
   create(): void {
     this.bridge = this.registry.get('bridge') as IPlatformBridge;
+    this.seasonMgr = this.registry.get('seasonManager') as SeasonManager | undefined;
     const { width: w, height: h } = this.scale;
     this.cameras.main.setBackgroundColor(BRAND.BG_CREAM);
 
-    // Title (moved up for 3 mode buttons)
-    this.add.text(w / 2, h * 0.21, 'Мишкин\nЛяп', {
+    // Title
+    this.add.text(w / 2, h * 0.18, 'Мишкин\nЛяп', {
       fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY, align: 'center',
     }).setOrigin(0.5);
+
+    // Season event banner
+    if (this.seasonMgr?.isEventActive()) {
+      const season = this.seasonMgr.getActiveSeason();
+      this.add.text(w / 2, h * 0.30, `${season.emoji} ${season.name} ${season.emoji}`, {
+        fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(0.5);
+      this.countdownText = this.add.text(w / 2, h * 0.34, '', {
+        fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5);
+      this.add.text(w / 2, h * 0.37, `×${season.scoreMult} бонус к очкам!`, {
+        fontSize: '14px', color: '#D4A24C', fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5);
+    }
 
     // Best score
     const scoreManager = new ScoreManager(this);
@@ -96,6 +114,14 @@ export class MenuScene extends Phaser.Scene {
     if (checkIn.isNewDay) this.showStreakPopup(w, h, checkIn);
 
     this.bridge?.showBanner();
+  }
+
+  update(): void {
+    if (this.countdownText && this.seasonMgr?.isEventActive()) {
+      const ms = this.seasonMgr.getTimeRemainingMs();
+      const d = Math.floor(ms / 86400000), hr = Math.floor((ms % 86400000) / 3600000), m = Math.floor((ms % 3600000) / 60000);
+      this.countdownText.setText(`Осталось: ${d}д ${hr}ч ${m}м`);
+    }
   }
 
   private startGame(mode: GameMode): void {

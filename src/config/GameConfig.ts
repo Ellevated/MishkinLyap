@@ -152,6 +152,30 @@ export const TUTORIAL = {
   HINT_FADE_MS: 300,
 } as const;
 
+export interface SeasonConfig {
+  id: string; name: string;
+  startMonth: number; startDay: number; endMonth: number; endDay: number;
+  bgTint: number; borderTint: number; particleColor: number;
+  particleType: 'snow' | 'leaves' | 'hearts' | 'stars' | 'none';
+  scoreMult: number; emoji: string;
+}
+
+export const SEASONS: readonly SeasonConfig[] = [
+  { id: 'winter', name: 'Зимний фестиваль', startMonth: 12, startDay: 15, endMonth: 1, endDay: 15,
+    bgTint: 0xD6EAF8, borderTint: 0x87CEEB, particleColor: 0xFFFFFF, particleType: 'snow', scoreMult: 1.5, emoji: '❄️' },
+  { id: 'spring', name: 'Весенний праздник', startMonth: 3, startDay: 1, endMonth: 3, endDay: 15,
+    bgTint: 0xEAF5E4, borderTint: 0x90EE90, particleColor: 0xFFB7C5, particleType: 'leaves', scoreMult: 1.5, emoji: '🌸' },
+  { id: 'valentines', name: 'День Влюблённых', startMonth: 2, startDay: 10, endMonth: 2, endDay: 16,
+    bgTint: 0xFFE4E1, borderTint: 0xFF69B4, particleColor: 0xFF1493, particleType: 'hearts', scoreMult: 1.5, emoji: '💕' },
+  { id: 'newyear', name: 'Новогодний мишка!', startMonth: 12, startDay: 25, endMonth: 1, endDay: 5,
+    bgTint: 0xFFF8DC, borderTint: 0xFFD700, particleColor: 0xFFD700, particleType: 'stars', scoreMult: 2.0, emoji: '🎄' },
+];
+
+export const DEFAULT_SEASON: SeasonConfig = {
+  id: 'default', name: '', startMonth: 1, startDay: 1, endMonth: 12, endDay: 31,
+  bgTint: 0x000000, borderTint: 0x000000, particleColor: 0x000000, particleType: 'none', scoreMult: 1.0, emoji: '',
+};
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
 

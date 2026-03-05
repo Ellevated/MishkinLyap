@@ -66,6 +66,10 @@ export class MockPlatform implements IPlatformBridge {
     }));
   }
 
+  async getFlags(defaults: Record<string, string>): Promise<Record<string, string>> {
+    return { ...defaults };
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

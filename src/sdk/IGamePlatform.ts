@@ -46,4 +46,7 @@ export interface IPlatformBridge {
 
   /** Get server time (ms since epoch). Tamper-proof on Yandex. */
   getServerTime(): number;
+
+  /** Get remote config flags from platform */
+  getFlags(defaults: Record<string, string>): Promise<Record<string, string>>;
 }

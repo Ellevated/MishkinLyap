@@ -8,7 +8,9 @@
 
 import Phaser from 'phaser';
 import { ANIMALS, BRAND } from '../config/GameConfig';
+import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { LuckySpinScene } from './LuckySpinScene';
+import { SeasonManager } from '../game/SeasonManager';
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -54,6 +56,16 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Generate particle texture (runtime, no asset file)
+    const g = this.add.graphics();
+    g.fillStyle(0xffffff); g.fillCircle(4, 4, 4); g.generateTexture('particle', 8, 8); g.destroy();
+
+    // Init season manager
+    const bridge = this.registry.get('bridge') as IPlatformBridge;
+    const seasonMgr = new SeasonManager(bridge);
+    this.registry.set('seasonManager', seasonMgr);
+    seasonMgr.tryRemoteOverride().catch(() => { /* ok */ });
+
     this.scene.add('LuckySpin', LuckySpinScene, false);
     this.scene.start('Menu');
   }
