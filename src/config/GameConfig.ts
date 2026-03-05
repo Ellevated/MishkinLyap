@@ -80,6 +80,17 @@ export const AUDIO = {
   SFX_VOLUME: 0.6,
 } as const;
 
+export const AUDIO_ENHANCED = {
+  REWARD_CHIME_BASE_FREQ: 523,
+  REWARD_CHIME_INTERVALS: [0, 4, 7, 12],
+  REWARD_CHIME_NOTE_DURATION: 0.12,
+  DANGER_FREQ: 165,
+  DANGER_PULSE_RATE: 2,
+  MUSIC_DUCK_VOLUME: 0.08,
+  MUSIC_DUCK_RAMP: 0.05,
+  REWARD_MIN_TIER: 4,
+} as const;
+
 export const COMBO = {
   WINDOW_MS: 2000,
   MULTIPLIERS: [1, 1, 1.5, 2, 2.5, 3] as readonly number[],

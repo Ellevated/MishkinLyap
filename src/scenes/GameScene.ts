@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED } from '../config/GameConfig';
 import type { MysteryRewardType, GameMode } from '../config/GameConfig';
 import type { SeasonManager } from '../game/SeasonManager';
 import { EVENTS } from '../config/GameEvents';
@@ -186,6 +186,7 @@ export class GameScene extends Phaser.Scene {
     const comboCount = this.combo.registerMerge();
     const multiplier = this.combo.getMultiplier();
     this.audio.playMerge(comboCount);
+    if (result.newTier >= AUDIO_ENHANCED.REWARD_MIN_TIER) this.audio.playRewardChime();
     this.updateComboUI(comboCount);
 
     this.tutorial.onMerge();
@@ -245,13 +246,8 @@ export class GameScene extends Phaser.Scene {
     const to = data.score;
     this.displayedScore = to;
 
-    this.tweens.addCounter({
-      from, to, duration: 300, ease: 'Power2',
-      onUpdate: (tween) => this.scoreText.setText(String(Math.round(tween.getValue() ?? to))),
-    });
-    this.tweens.add({
-      targets: this.scoreText, scaleX: 1.15, scaleY: 1.15, duration: 100, yoyo: true, ease: 'Power2',
-    });
+    this.tweens.addCounter({ from, to, duration: 300, ease: 'Power2', onUpdate: (tween) => this.scoreText.setText(String(Math.round(tween.getValue() ?? to))) });
+    this.tweens.add({ targets: this.scoreText, scaleX: 1.15, scaleY: 1.15, duration: 100, yoyo: true, ease: 'Power2' });
 
     if (!this.sessionStats.isNewRecord && to > this.score.getBestScore() && this.score.getBestScore() > 0) {
       this.sessionStats.isNewRecord = true; this.effects.showNewRecordToast();
@@ -285,9 +281,11 @@ export class GameScene extends Phaser.Scene {
     }
     if (above) {
       this.gameOverTimer += delta;
+      if (this.gameOverTimer > 500) this.audio.startDangerTone();
       if (this.gameOverTimer > 2000) this.triggerGameOver();
     } else {
       this.gameOverTimer = 0;
+      this.audio.stopDangerTone();
     }
   }
 
@@ -295,7 +293,7 @@ export class GameScene extends Phaser.Scene {
     this.phase = 'game-over';
     this.inputHandler.disable();
     this.merge.disable();
-    this.audio.playGameOver();
+    this.audio.stopDangerTone(); this.audio.playGameOver();
     this.audio.stopMusic();
     this.bridge?.gameplayStop();
     const isNewRecord = this.score.checkAndSaveBest();
