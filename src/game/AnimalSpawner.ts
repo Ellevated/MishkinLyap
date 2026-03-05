@@ -19,6 +19,8 @@ export class AnimalSpawner {
   private nextTier: number;
   private animals: Set<Animal> = new Set();
   private rngFn: ((min: number, max: number) => number) | null = null;
+  private lastSpawned: Animal | null = null;
+  private previousNextTier = 0;
 
   constructor(scene: Phaser.Scene, physics: PhysicsManager) {
     this.scene = scene;
@@ -29,15 +31,26 @@ export class AnimalSpawner {
   /** Create an Animal at drop position with pre-rolled tier */
   spawnAtDrop(x: number): Animal {
     const tier = this.nextTier;
+    this.previousNextTier = this.nextTier;
     this.nextTier = this.rollTier();
 
     const y = GAME.GAME_OVER_LINE_Y + 30;
     const animal = new Animal(this.scene, x, y, tier);
     this.physics.addBody(animal.body);
     this.animals.add(animal);
+    this.lastSpawned = animal;
 
     this.scene.events.emit(EVENTS.ANIMAL_DROPPED, { animal });
     return animal;
+  }
+
+  /** Undo the last drop: destroy animal, restore nextTier */
+  undoLastDrop(): boolean {
+    if (!this.lastSpawned?.active) return false;
+    this.destroy(this.lastSpawned);
+    this.nextTier = this.previousNextTier;
+    this.lastSpawned = null;
+    return true;
   }
 
   /** Create an Animal at merge position with specific tier */
@@ -54,6 +67,9 @@ export class AnimalSpawner {
     if (animal.body) this.physics.removeBody(animal.body);
     animal.destroyAnimal();
   }
+
+  /** Get the last spawned animal (for undo collision check) */
+  peekLastSpawned(): Animal | null { return this.lastSpawned; }
 
   /** Get the next animal tier for preview display */
   peekNextTier(): number {

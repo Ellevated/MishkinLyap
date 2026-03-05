@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS, PHYSICS } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO } from '../config/GameConfig';
 import type { GameMode } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
@@ -45,9 +45,14 @@ export class GameScene extends Phaser.Scene {
   private comboText!: Phaser.GameObjects.Text;
   private comboFadeTimer?: Phaser.Time.TimerEvent;
   private dropCooldown = false;
+  private dropCooldownTimer?: Phaser.Time.TimerEvent;
   private gameOverTimer = 0;
   private displayedScore = 0;
   private continuesUsed = 0;
+  private undosRemaining = 0;
+  private undoAvailable = false;
+  private undoTimer?: Phaser.Time.TimerEvent;
+  private undoBtn?: Phaser.GameObjects.Text;
   private sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
 
   constructor() { super('Game'); }
@@ -60,6 +65,8 @@ export class GameScene extends Phaser.Scene {
     this.gameOverTimer = 0;
     this.displayedScore = 0;
     this.continuesUsed = 0;
+    this.undosRemaining = UNDO.MAX_PER_GAME;
+    this.undoAvailable = false;
     this.sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
     this.cameras.main.setBackgroundColor(BRAND.BG_CREAM);
 
@@ -136,6 +143,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.updateNextPreview();
+
+    // Undo button (hidden by default)
+    this.undoBtn = this.add.text(50, 50, '↩', {
+      fontSize: '32px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY,
+    }).setOrigin(0.5).setDepth(10).setAlpha(0).setInteractive({ useHandCursor: true });
+    this.undoBtn.on('pointerup', () => this.executeUndo());
+
+    // Lock undo when dropped animal touches anything
+    this.matter.world.on('collisionstart', (_e: any, a: any, b: any) => {
+      if (!this.undoAvailable) return;
+      const last = this.spawner.peekLastSpawned();
+      if (!last?.body) return;
+      if (a === last.body || b === last.body) { this.undoAvailable = false; this.hideUndoBtn(); }
+    });
   }
 
   update(_time: number, delta: number): void {
@@ -150,10 +171,17 @@ export class GameScene extends Phaser.Scene {
     this.audio.playDrop();
     this.spawner.spawnAtDrop(data.x);
     this.updateNextPreview();
-    this.time.delayedCall(GAME.DROP_COOLDOWN_MS, () => {
+    this.dropCooldownTimer = this.time.delayedCall(GAME.DROP_COOLDOWN_MS, () => {
       this.dropCooldown = false;
       if (this.phase === 'playing') this.inputHandler.enable();
     });
+    // Show undo if available
+    if (this.undosRemaining > 0) {
+      this.undoAvailable = true;
+      this.showUndoBtn();
+      this.undoTimer?.destroy();
+      this.undoTimer = this.time.delayedCall(UNDO.WINDOW_MS, () => { this.undoAvailable = false; this.hideUndoBtn(); });
+    }
   }
 
   private onMerge(result: MergeResult): void {
@@ -326,10 +354,35 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private executeUndo(): void {
+    if (!this.undoAvailable || this.undosRemaining <= 0) return;
+    if (!this.spawner.undoLastDrop()) return;
+    this.undoAvailable = false;
+    this.undosRemaining--;
+    this.undoTimer?.destroy();
+    this.hideUndoBtn();
+    this.updateNextPreview();
+    // Cancel drop cooldown, re-enable input immediately
+    this.dropCooldownTimer?.destroy();
+    this.dropCooldown = false;
+    if (this.phase === 'playing') this.inputHandler.enable();
+    // Visual feedback
+    const t = this.add.text(GAME.WIDTH / 2, GAME.HEIGHT * 0.4, 'Отмена!', {
+      fontSize: '28px', color: '#4A7A30', fontFamily: BRAND.FONT_DISPLAY,
+    }).setOrigin(0.5).setDepth(20).setAlpha(0);
+    this.tweens.add({ targets: t, alpha: 1, y: GAME.HEIGHT * 0.35, duration: 200, ease: 'Power2',
+      onComplete: () => this.time.delayedCall(400, () => this.tweens.add({ targets: t, alpha: 0, duration: 300, onComplete: () => t.destroy() })),
+    });
+  }
+
+  private showUndoBtn(): void { if (this.undoBtn) this.tweens.add({ targets: this.undoBtn, alpha: 1, duration: 150 }); }
+  private hideUndoBtn(): void { if (this.undoBtn) this.tweens.add({ targets: this.undoBtn, alpha: 0, duration: 150 }); }
+
   shutdown(): void {
     this.audio?.destroy();
     this.tweens.killAll();
     this.time.removeAllEvents();
+    this.matter?.world?.removeAllListeners();
     this.events.off(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
     this.events.off(EVENTS.ANIMAL_MERGED, this.onMerge, this);
     this.events.off(EVENTS.SCORE_UPDATED, this.onScoreUpdated, this);

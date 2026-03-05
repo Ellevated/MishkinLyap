@@ -92,6 +92,11 @@ export const STREAK = {
   SHIELD_RESET_DAY: 1, // Monday
 } as const;
 
+export const UNDO = {
+  MAX_PER_GAME: 1,
+  WINDOW_MS: 800,
+} as const;
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
 
