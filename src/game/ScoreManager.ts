@@ -12,6 +12,7 @@ import {
   STORAGE_KEY,
   STORAGE_VERSION,
   DEFAULT_DATA,
+  DEFAULT_STREAK,
 } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
@@ -81,13 +82,13 @@ export class ScoreManager {
         return {
           v: STORAGE_VERSION, best: parsed.best, sound: parsed.sound ?? true,
           discoveredTiers: parsed.discoveredTiers ?? [1, 2, 3],
+          streak: parsed.streak ?? { ...DEFAULT_STREAK },
         };
       }
 
-      // Patch: add discoveredTiers if missing (pre-FTR-012 saves)
-      if (!Array.isArray(parsed.discoveredTiers)) {
-        parsed.discoveredTiers = [1, 2, 3];
-      }
+      // Patch: add missing fields from later features
+      if (!Array.isArray(parsed.discoveredTiers)) parsed.discoveredTiers = [1, 2, 3];
+      if (!parsed.streak) parsed.streak = { ...DEFAULT_STREAK };
 
       return parsed as PersistedData;
     } catch {

@@ -11,6 +11,7 @@ import { GAME, BRAND } from '../config/GameConfig';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { ScoreManager } from '../game/ScoreManager';
 import { AudioManager } from '../game/AudioManager';
+import { DailyStreakManager } from '../game/DailyStreakManager';
 
 export class MenuScene extends Phaser.Scene {
   private bridge!: IPlatformBridge;
@@ -91,7 +92,53 @@ export class MenuScene extends Phaser.Scene {
       muteBtn.setText(muted ? '🔇' : '🔊');
     });
 
+    // Daily streak
+    const streakMgr = new DailyStreakManager();
+    const checkIn = streakMgr.checkIn();
+
+    // Streak badge (under mute icon)
+    if (checkIn.streak > 0) {
+      this.add.text(width - 20, 60, `${checkIn.streak}`, {
+        fontSize: '20px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(1, 0);
+    }
+
+    // Daily reward popup (first visit of the day)
+    if (checkIn.isNewDay) {
+      this.showStreakPopup(width, height, checkIn);
+    }
+
     // Show banner
     this.bridge?.showBanner();
+  }
+
+  private showStreakPopup(
+    width: number, height: number,
+    info: import('../game/DailyStreakManager').StreakCheckInResult,
+  ): void {
+    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x3d2b1f, 0.5);
+    overlay.setInteractive().setDepth(20);
+
+    const py = height * 0.35;
+    this.add.rectangle(width / 2, py + 40, 280, 220, 0xf0e5ca).setStrokeStyle(3, 0xd6c6a9).setDepth(21);
+
+    this.add.text(width / 2, py - 30, `День ${info.streak}!`, {
+      fontSize: '28px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY,
+    }).setOrigin(0.5).setDepth(21);
+
+    let msg = `Бонус: x${info.rewardMultiplier}\nк первой игре`;
+    if (info.streakRecovered) msg = 'Щит спас серию!\n' + msg;
+    else if (info.streakBroken) msg = 'Новая серия!\n' + msg;
+
+    this.add.text(width / 2, py + 25, msg, {
+      fontSize: '18px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY, align: 'center',
+    }).setOrigin(0.5).setDepth(21);
+
+    const btn = this.add.rectangle(width / 2, py + 85, 180, 48, 0xd4a24c).setStrokeStyle(2, 0x8a6420).setDepth(21);
+    btn.setInteractive({ useHandCursor: true });
+    this.add.text(width / 2, py + 85, 'Играть!', {
+      fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(21);
+    btn.on('pointerup', () => this.scene.start('Game'));
   }
 }

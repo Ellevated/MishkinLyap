@@ -79,14 +79,35 @@ export const COMBO = {
   MAX_DISPLAY: 5,
 } as const;
 
+export const STREAK = {
+  REWARDS: [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 2.0] as readonly number[],
+  MAX_DISPLAY: 7,
+  SHIELD_RESET_DAY: 1, // Monday
+} as const;
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
+
+export interface StreakData {
+  count: number;
+  lastPlayDate: string;
+  shieldAvailable: boolean;
+  lastShieldReset: string;
+  todayClaimed: boolean;
+}
+
+export const DEFAULT_STREAK: StreakData = {
+  count: 0, lastPlayDate: '', shieldAvailable: true, lastShieldReset: '', todayClaimed: false,
+};
 
 export interface PersistedData {
   v: number;
   best: number;
   sound: boolean;
   discoveredTiers: number[];
+  streak: StreakData;
 }
 
-export const DEFAULT_DATA: PersistedData = { v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3] };
+export const DEFAULT_DATA: PersistedData = {
+  v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3], streak: { ...DEFAULT_STREAK },
+};
