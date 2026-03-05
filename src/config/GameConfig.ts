@@ -86,6 +86,7 @@ export interface PersistedData {
   v: number;
   best: number;
   sound: boolean;
+  discoveredTiers: number[];
 }
 
-export const DEFAULT_DATA: PersistedData = { v: 1, best: 0, sound: true };
+export const DEFAULT_DATA: PersistedData = { v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3] };

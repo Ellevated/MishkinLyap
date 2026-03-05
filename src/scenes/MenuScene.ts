@@ -68,6 +68,18 @@ export class MenuScene extends Phaser.Scene {
       this.scene.start('Game');
     });
 
+    // Bestiary button
+    const bestBtnY = btnY + 70;
+    const bestBtn = this.add.rectangle(width / 2, bestBtnY, 200, 52, 0xede0c4);
+    bestBtn.setStrokeStyle(2, 0x8a6420);
+    bestBtn.setInteractive({ useHandCursor: true });
+    this.add.text(width / 2, bestBtnY, 'Зверята', {
+      fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+    }).setOrigin(0.5);
+    bestBtn.on('pointerover', () => bestBtn.setFillStyle(0xe8c47a));
+    bestBtn.on('pointerout', () => bestBtn.setFillStyle(0xede0c4));
+    bestBtn.on('pointerup', () => this.scene.start('Bestiary'));
+
     // Mute toggle
     const audio = new AudioManager();
     const muteBtn = this.add.text(width - 20, 20, audio.isMuted() ? '🔇' : '🔊', {

@@ -48,7 +48,8 @@ export class ScoreManager {
   checkAndSaveBest(): boolean {
     if (this.score > this.best) {
       this.best = this.score;
-      this.saveData({ v: STORAGE_VERSION, best: this.best, sound: true });
+      const current = this.loadData();
+      this.saveData({ ...current, best: this.best });
       return true;
     }
     return false;
@@ -77,13 +78,35 @@ export class ScoreManager {
 
       // Migration: if version doesn't match, keep best score but reset version
       if (parsed.v !== STORAGE_VERSION) {
-        return { v: STORAGE_VERSION, best: parsed.best, sound: parsed.sound ?? true };
+        return {
+          v: STORAGE_VERSION, best: parsed.best, sound: parsed.sound ?? true,
+          discoveredTiers: parsed.discoveredTiers ?? [1, 2, 3],
+        };
+      }
+
+      // Patch: add discoveredTiers if missing (pre-FTR-012 saves)
+      if (!Array.isArray(parsed.discoveredTiers)) {
+        parsed.discoveredTiers = [1, 2, 3];
       }
 
       return parsed as PersistedData;
     } catch {
       return { ...DEFAULT_DATA };
     }
+  }
+
+  /** Mark a tier as discovered. Returns true if newly discovered. */
+  discoverTier(tier: number): boolean {
+    const data = this.loadData();
+    if (data.discoveredTiers.includes(tier)) return false;
+    data.discoveredTiers.push(tier);
+    data.discoveredTiers.sort((a, b) => a - b);
+    this.saveData(data);
+    return true;
+  }
+
+  getDiscoveredTiers(): number[] {
+    return this.loadData().discoveredTiers;
   }
 
   /** Save persisted data to localStorage */

@@ -135,6 +135,9 @@ export class GameScene extends Phaser.Scene {
     if (result.newTier > this.sessionStats.highestTier) this.sessionStats.highestTier = result.newTier;
     this.effects.triggerMergeToast(result.newTier, comboCount);
 
+    // Discover new tier
+    this.score.discoverTier(result.newTier);
+
     // Squash old animals
     this.tweens.add({
       targets: [result.removedA, result.removedB],
