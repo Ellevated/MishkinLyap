@@ -60,13 +60,14 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(1, 0);
     }
 
-    // === Title (zone 15-35%) ===
-    this.add.text(w / 2, h * 0.18, 'Мишкин\nЛяп', {
+    // === Mascot + Title (zone 10-35%) ===
+    this.add.image(w / 2, h * 0.12, 'mascot').setDisplaySize(120, 120);
+    this.add.text(w / 2, h * 0.25, 'Мишкин\nЛяп', {
       fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY, align: 'center',
     }).setOrigin(0.5);
 
     // === Dynamic Y accumulator from zone 35% ===
-    let y = h * 0.33;
+    let y = h * 0.35;
 
     // Season event banner (optional zone)
     if (this.seasonMgr?.isEventActive()) {
