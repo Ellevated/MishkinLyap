@@ -15,6 +15,7 @@ import {
   DEFAULT_STREAK,
   DEFAULT_MISSIONS,
   DEFAULT_CAREER,
+  DEFAULT_DAILY,
 } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
@@ -88,6 +89,7 @@ export class ScoreManager {
           missions: parsed.missions ?? { ...DEFAULT_MISSIONS },
           career: parsed.career ?? { ...DEFAULT_CAREER },
           unlockedAchievements: parsed.unlockedAchievements ?? [],
+          dailyChallenge: parsed.dailyChallenge ?? { ...DEFAULT_DAILY },
         };
       }
 
@@ -97,6 +99,7 @@ export class ScoreManager {
       if (!parsed.missions) parsed.missions = { ...DEFAULT_MISSIONS };
       if (!parsed.career) parsed.career = { ...DEFAULT_CAREER };
       if (!Array.isArray(parsed.unlockedAchievements)) parsed.unlockedAchievements = [];
+      if (!parsed.dailyChallenge) parsed.dailyChallenge = { ...DEFAULT_DAILY };
 
       return parsed as PersistedData;
     } catch {
@@ -112,6 +115,29 @@ export class ScoreManager {
     data.discoveredTiers.sort((a, b) => a - b);
     this.saveData(data);
     return true;
+  }
+
+  /** Get daily best score for given date. Returns 0 if different day. */
+  getDailyBest(dateStr: string): number {
+    const data = this.loadData();
+    return data.dailyChallenge.date === dateStr ? data.dailyChallenge.bestScore : 0;
+  }
+
+  /** Check and save daily best. Returns true if new daily record. */
+  checkAndSaveDailyBest(dateStr: string): boolean {
+    const data = this.loadData();
+    if (data.dailyChallenge.date !== dateStr) {
+      data.dailyChallenge = { date: dateStr, bestScore: this.score, completed: true };
+      this.saveData(data);
+      return true;
+    }
+    if (this.score > data.dailyChallenge.bestScore) {
+      data.dailyChallenge.bestScore = this.score;
+      data.dailyChallenge.completed = true;
+      this.saveData(data);
+      return true;
+    }
+    return false;
   }
 
   getDiscoveredTiers(): number[] {

@@ -53,6 +53,8 @@ export class MockPlatform implements IPlatformBridge {
     return this.highScore;
   }
 
+  getServerTime(): number { return Date.now(); }
+
   async getLeaderboardEntries(count: number): Promise<LeaderboardEntry[]> {
     console.warn('[SDK Mock] getLeaderboardEntries');
     const names = ['Мария П.', 'Ольга С.', 'Татьяна К.', 'Елена В.', 'Наталья Б.',

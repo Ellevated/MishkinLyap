@@ -59,6 +59,12 @@ export const GAME = {
   CONTAINER_TOP_Y: 100,
 } as const;
 
+export type GameMode = 'classic' | 'daily' | 'relaxation';
+
+export const MODES = {
+  RELAXATION_GRAVITY_MULT: 0.7,
+} as const;
+
 export const ADS = {
   MIN_SESSION_BEFORE_INTERSTITIAL_MS: 60_000,
   INTERSTITIAL_COOLDOWN_MS: 180_000,
@@ -181,6 +187,16 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'combo_5',      name: 'Каскадёр',         description: 'Соберите комбо x5',          icon: '🔥', check: s => s.maxCombo >= 5, progress: s => s.maxCombo, target: 5 },
 ] as const;
 
+export interface DailyChallengeData {
+  date: string;
+  bestScore: number;
+  completed: boolean;
+}
+
+export const DEFAULT_DAILY: DailyChallengeData = {
+  date: '', bestScore: 0, completed: false,
+};
+
 export interface PersistedData {
   v: number;
   best: number;
@@ -190,10 +206,12 @@ export interface PersistedData {
   missions: MissionSaveData;
   career: CareerStats;
   unlockedAchievements: string[];
+  dailyChallenge: DailyChallengeData;
 }
 
 export const DEFAULT_DATA: PersistedData = {
   v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3],
   streak: { ...DEFAULT_STREAK }, missions: { ...DEFAULT_MISSIONS },
   career: { ...DEFAULT_CAREER }, unlockedAchievements: [],
+  dailyChallenge: { ...DEFAULT_DAILY },
 };

@@ -181,6 +181,10 @@ export class YandexPlatform implements IPlatformBridge {
     }
   }
 
+  getServerTime(): number {
+    try { return this.sdk?.serverTime?.() ?? Date.now(); } catch { return Date.now(); }
+  }
+
   /** Set callbacks for game pause/resume (used by GameScene to handle ads) */
   setPauseResumeCallbacks(onPause: () => void, onResume: () => void): void {
     this.onPause = onPause;

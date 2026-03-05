@@ -43,4 +43,7 @@ export interface IPlatformBridge {
 
   /** Get top leaderboard entries + player's entry */
   getLeaderboardEntries(count: number): Promise<LeaderboardEntry[]>;
+
+  /** Get server time (ms since epoch). Tamper-proof on Yandex. */
+  getServerTime(): number;
 }

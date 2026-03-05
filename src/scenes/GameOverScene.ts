@@ -6,12 +6,14 @@
  */
 import Phaser from 'phaser';
 import { BRAND, ANIMALS, ADS } from '../config/GameConfig';
+import type { GameMode } from '../config/GameConfig';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import type { GameScene } from './GameScene';
 
 interface GameOverData {
   score: number; best: number; mergeCount: number;
   highestTier: number; isNewRecord: boolean; canContinue: boolean;
+  mode?: GameMode;
 }
 
 const WARM = ['Отличная игра!', 'Так держать!', 'Вы молодец!', 'Браво!'];
@@ -70,7 +72,8 @@ export class GameOverScene extends Phaser.Scene {
       y += 60;
     }
 
-    const pb = this.btn(w / 2, y, 'Ещё разок', 0xd4a24c, () => { pb.disableInteractive(); this.doRestart(bridge); });
+    const mode = data.mode || 'classic';
+    const pb = this.btn(w / 2, y, 'Ещё разок', 0xd4a24c, () => { pb.disableInteractive(); this.doRestart(bridge, mode); });
     if (!data.canContinue) this.tweens.add({ targets: pb, scaleX: 1.03, scaleY: 1.03, duration: 600, yoyo: true, repeat: -1 });
     y += 60;
 
@@ -91,12 +94,12 @@ export class GameOverScene extends Phaser.Scene {
     this.time.delayedCall(2000, () => this.tweens.add({ targets: e, alpha: 0, duration: 300, onComplete: () => e.destroy() }));
   }
 
-  private async doRestart(bridge: IPlatformBridge): Promise<void> {
+  private async doRestart(bridge: IPlatformBridge, mode: GameMode): Promise<void> {
     const last = (this.registry.get('lastInterstitialTime') as number) || 0;
     if (Date.now() - last > ADS.INTERSTITIAL_COOLDOWN_MS) {
       try { await bridge.showInterstitial(); this.registry.set('lastInterstitialTime', Date.now()); } catch { /* ok */ }
     }
-    this.scene.stop(); this.scene.stop('Game'); this.scene.start('Game');
+    this.scene.stop(); this.scene.stop('Game'); this.scene.start('Game', { mode });
   }
 
   private btn(x: number, y: number, label: string, color: number, onClick: () => void): Phaser.GameObjects.Rectangle {

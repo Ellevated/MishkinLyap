@@ -6,7 +6,8 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS } from '../config/GameConfig';
+import type { GameMode } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { PhysicsManager } from '../game/PhysicsManager';
@@ -20,6 +21,7 @@ import { ComboTracker } from '../game/ComboTracker';
 import { EffectsManager } from '../game/EffectsManager';
 import { MissionTracker } from '../game/MissionTracker';
 import { AchievementManager } from '../game/AchievementManager';
+import { GameModeManager } from '../game/GameModeManager';
 import { ACHIEVEMENTS } from '../config/GameConfig';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
@@ -35,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private effects!: EffectsManager;
   private missionTracker!: MissionTracker;
   private achievements!: AchievementManager;
+  private modeManager!: GameModeManager;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -49,8 +52,10 @@ export class GameScene extends Phaser.Scene {
 
   constructor() { super('Game'); }
 
-  create(): void {
+  create(data?: { mode?: GameMode }): void {
     this.bridge = this.registry.get('bridge') as IPlatformBridge;
+    const mode: GameMode = data?.mode || 'classic';
+    this.modeManager = new GameModeManager(mode, this.bridge);
     this.phase = 'playing';
     this.gameOverTimer = 0;
     this.displayedScore = 0;
@@ -64,6 +69,9 @@ export class GameScene extends Phaser.Scene {
     this.merge = new MergeDetector(this);
     this.score = new ScoreManager(this);
     this.spawner = new AnimalSpawner(this, this.physicsManager);
+    if (mode === 'daily') {
+      this.spawner.setRngFunction((min, max) => this.modeManager.getSpawnTier(min, max));
+    }
     this.inputHandler = new InputHandler(this);
     this.audio = new AudioManager();
     this.combo = new ComboTracker();
@@ -71,6 +79,11 @@ export class GameScene extends Phaser.Scene {
     this.missionTracker = new MissionTracker();
     this.missionTracker.loadOrReset();
     this.achievements = new AchievementManager();
+
+    // Adjust gravity for relaxation mode
+    if (mode === 'relaxation') {
+      (this as any).matter.world.setGravity(0, PHYSICS.GRAVITY_Y * this.modeManager.getGravityMultiplier());
+    }
 
     // Wire events
     this.events.on(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
@@ -106,11 +119,21 @@ export class GameScene extends Phaser.Scene {
       fontSize: '32px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
     }).setOrigin(0.5).setDepth(10).setAlpha(0);
 
-    this.add.line(0, 0,
-      GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y,
-      GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y,
-      0xc44832, 0.3,
-    ).setOrigin(0).setDepth(10);
+    if (mode !== 'relaxation') {
+      this.add.line(0, 0,
+        GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y,
+        GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y,
+        0xc44832, 0.3,
+      ).setOrigin(0).setDepth(10);
+    }
+
+    // Mode indicator
+    if (mode !== 'classic') {
+      const modeLabel = mode === 'daily' ? 'Ежедневная' : 'Без стресса';
+      this.add.text(10, 10, modeLabel, {
+        fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+      }).setDepth(10);
+    }
 
     this.updateNextPreview();
   }
@@ -221,6 +244,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkGameOver(delta: number): void {
+    if (!this.modeManager.hasGameOver()) return;
     const animals = this.spawner.getAnimals();
     let above = false;
     for (const a of animals) {
@@ -243,6 +267,8 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.gameplayStop();
     const isNewRecord = this.score.checkAndSaveBest();
     if (isNewRecord) this.bridge?.saveHighScore(this.score.getBestScore());
+    const mode = this.modeManager.getMode();
+    if (mode === 'daily') this.score.checkAndSaveDailyBest(this.modeManager.getDailyDateString());
     this.missionTracker.reportScore(this.score.getScore());
     this.missionTracker.reportGamePlayed();
     this.showAchievementToasts(this.achievements.reportGameEnd(this.score.getScore()));
@@ -250,6 +276,7 @@ export class GameScene extends Phaser.Scene {
     this.scene.launch('GameOver', {
       score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats,
       canContinue: this.continuesUsed < ADS.MAX_CONTINUES_PER_GAME,
+      mode,
     });
     this.scene.pause();
   }

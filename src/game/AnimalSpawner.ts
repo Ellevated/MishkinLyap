@@ -18,6 +18,7 @@ export class AnimalSpawner {
   private physics: PhysicsManager;
   private nextTier: number;
   private animals: Set<Animal> = new Set();
+  private rngFn: ((min: number, max: number) => number) | null = null;
 
   constructor(scene: Phaser.Scene, physics: PhysicsManager) {
     this.scene = scene;
@@ -73,8 +74,14 @@ export class AnimalSpawner {
     this.animals.clear();
   }
 
+  /** Set custom RNG function (for daily challenge deterministic mode) */
+  setRngFunction(fn: (min: number, max: number) => number): void {
+    this.rngFn = fn;
+    this.nextTier = this.rollTier(); // re-roll with new RNG
+  }
+
   /** Roll random tier for next drop (1 to SPAWN_MAX_TIER) */
   private rollTier(): number {
-    return Phaser.Math.Between(1, GAME.SPAWN_MAX_TIER);
+    return this.rngFn ? this.rngFn(1, GAME.SPAWN_MAX_TIER) : Phaser.Math.Between(1, GAME.SPAWN_MAX_TIER);
   }
 }
