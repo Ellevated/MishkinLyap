@@ -52,7 +52,7 @@ export class GameScene extends Phaser.Scene {
   private comboFadeTimer?: Phaser.Time.TimerEvent;
   private dropCooldown = false;
   private dropCooldownTimer?: Phaser.Time.TimerEvent;
-  private gameOverTimer = 0;
+  private gameOverTimer = 0; private musicUpdateTimer = 0;
   private displayedScore = 0;
   private continuesUsed = 0;
   private undosRemaining = 0;
@@ -155,6 +155,7 @@ export class GameScene extends Phaser.Scene {
     this.mysteryRewards.update(this.time.now);
     this.combo.checkFeverExpiry(); if (!this.combo.isFever && this.fever.isActive()) this.fever.deactivateFever();
     this.tutorial.checkStuck(delta);
+    this.musicUpdateTimer += delta; if (this.musicUpdateTimer > 500) { this.musicUpdateTimer = 0; this.updateMusicState(); }
     this.checkGameOver(delta);
   }
 
@@ -242,20 +243,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onScoreUpdated(data: { score: number }): void {
-    const from = this.displayedScore;
-    const to = data.score;
-    this.displayedScore = to;
-
+    const from = this.displayedScore, to = data.score; this.displayedScore = to;
     this.tweens.addCounter({ from, to, duration: 300, ease: 'Power2', onUpdate: (tween) => this.scoreText.setText(String(Math.round(tween.getValue() ?? to))) });
     this.tweens.add({ targets: this.scoreText, scaleX: 1.15, scaleY: 1.15, duration: 100, yoyo: true, ease: 'Power2' });
-
-    if (!this.sessionStats.isNewRecord && to > this.score.getBestScore() && this.score.getBestScore() > 0) {
-      this.sessionStats.isNewRecord = true; this.effects.showNewRecordToast();
-    }
-    if (to - from > 20) {
-      this.scoreText.setColor('#D4A24C');
-      this.time.delayedCall(200, () => this.scoreText.setColor(BRAND.TEXT_INK));
-    }
+    if (!this.sessionStats.isNewRecord && to > this.score.getBestScore() && this.score.getBestScore() > 0) { this.sessionStats.isNewRecord = true; this.effects.showNewRecordToast(); }
+    if (to - from > 20) { this.scoreText.setColor('#D4A24C'); this.time.delayedCall(200, () => this.scoreText.setColor(BRAND.TEXT_INK)); }
     this.tutorial.onScoreReached(to);
   }
 
@@ -380,6 +372,16 @@ export class GameScene extends Phaser.Scene {
       this.score.addScore(MYSTERY.SCORE_SHOWER_BONUS);
       showText(`+${MYSTERY.SCORE_SHOWER_BONUS}`);
     }
+  }
+
+  private updateMusicState(): void {
+    const animals = this.spawner.getAnimals();
+    if (!animals.size) { this.audio.setMusicState('calm'); return; }
+    let highestY: number = GAME.HEIGHT;
+    for (const a of animals) { if (a.body.position.y < highestY) highestY = a.body.position.y; }
+    const fill = Math.max(0, Math.min(1, 1 - ((highestY - GAME.GAME_OVER_LINE_Y) / (GAME.HEIGHT - GAME.GAME_OVER_LINE_Y))));
+    const ms = (this.combo.getCount() >= 3 || fill > 0.75) ? 'combo' : fill > 0.4 ? 'tense' : 'calm';
+    this.audio.setMusicState(ms);
   }
 
   shutdown(): void {
