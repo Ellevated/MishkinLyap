@@ -97,6 +97,16 @@ export const UNDO = {
   WINDOW_MS: 800,
 } as const;
 
+export type MysteryRewardType = 'score_boost' | 'golden_mode' | 'score_shower';
+export const MYSTERY = {
+  BASE_CHANCE: 0.1,
+  PITY_THRESHOLD: 20,
+  SCORE_BOOST_MULT: 3,
+  GOLDEN_DURATION_MS: 5000,
+  GOLDEN_MULT: 2,
+  SCORE_SHOWER_BONUS: 100,
+} as const;
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
 

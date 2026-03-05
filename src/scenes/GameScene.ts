@@ -6,7 +6,8 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY } from '../config/GameConfig';
+import type { MysteryRewardType } from '../config/GameConfig';
 import type { GameMode } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
@@ -22,6 +23,7 @@ import { EffectsManager } from '../game/EffectsManager';
 import { MissionTracker } from '../game/MissionTracker';
 import { AchievementManager } from '../game/AchievementManager';
 import { GameModeManager } from '../game/GameModeManager';
+import { MysteryRewardManager } from '../game/MysteryRewardManager';
 import { ACHIEVEMENTS } from '../config/GameConfig';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
@@ -38,6 +40,7 @@ export class GameScene extends Phaser.Scene {
   private missionTracker!: MissionTracker;
   private achievements!: AchievementManager;
   private modeManager!: GameModeManager;
+  private mysteryRewards!: MysteryRewardManager;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -86,6 +89,7 @@ export class GameScene extends Phaser.Scene {
     this.missionTracker = new MissionTracker();
     this.missionTracker.loadOrReset();
     this.achievements = new AchievementManager();
+    this.mysteryRewards = new MysteryRewardManager();
 
     // Adjust gravity for relaxation mode
     if (mode === 'relaxation') {
@@ -104,42 +108,19 @@ export class GameScene extends Phaser.Scene {
 
     // Visual container walls
     const bounds = this.physicsManager.getContainerBounds();
-    this.add.rectangle(
-      GAME.CONTAINER_WALL_THICKNESS / 2, (bounds.top + GAME.HEIGHT) / 2,
-      GAME.CONTAINER_WALL_THICKNESS, GAME.HEIGHT - bounds.top, 0xd6c6a9,
-    ).setOrigin(0.5);
-    this.add.rectangle(
-      GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS / 2, (bounds.top + GAME.HEIGHT) / 2,
-      GAME.CONTAINER_WALL_THICKNESS, GAME.HEIGHT - bounds.top, 0xd6c6a9,
-    ).setOrigin(0.5);
-    this.add.rectangle(
-      GAME.WIDTH / 2, GAME.HEIGHT - GAME.CONTAINER_WALL_THICKNESS / 2,
-      GAME.WIDTH, GAME.CONTAINER_WALL_THICKNESS, 0xd6c6a9,
-    ).setOrigin(0.5);
+    const wt = GAME.CONTAINER_WALL_THICKNESS, wallH = GAME.HEIGHT - bounds.top, wallY = (bounds.top + GAME.HEIGHT) / 2;
+    this.add.rectangle(wt / 2, wallY, wt, wallH, 0xd6c6a9).setOrigin(0.5);
+    this.add.rectangle(GAME.WIDTH - wt / 2, wallY, wt, wallH, 0xd6c6a9).setOrigin(0.5);
+    this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT - wt / 2, GAME.WIDTH, wt, 0xd6c6a9).setOrigin(0.5);
 
     // UI
-    this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', {
-      fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY,
-    }).setOrigin(0.5).setDepth(10);
-
-    this.comboText = this.add.text(GAME.WIDTH / 2 + 80, 30, '', {
-      fontSize: '32px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
-    }).setOrigin(0.5).setDepth(10).setAlpha(0);
-
+    this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', { fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10);
+    this.comboText = this.add.text(GAME.WIDTH / 2 + 80, 30, '', { fontSize: '32px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10).setAlpha(0);
     if (mode !== 'relaxation') {
-      this.add.line(0, 0,
-        GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y,
-        GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y,
-        0xc44832, 0.3,
-      ).setOrigin(0).setDepth(10);
+      this.add.line(0, 0, wt, GAME.GAME_OVER_LINE_Y, GAME.WIDTH - wt, GAME.GAME_OVER_LINE_Y, 0xc44832, 0.3).setOrigin(0).setDepth(10);
     }
-
-    // Mode indicator
     if (mode !== 'classic') {
-      const modeLabel = mode === 'daily' ? 'Ежедневная' : 'Без стресса';
-      this.add.text(10, 10, modeLabel, {
-        fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
-      }).setDepth(10);
+      this.add.text(10, 10, mode === 'daily' ? 'Ежедневная' : 'Без стресса', { fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setDepth(10);
     }
 
     this.updateNextPreview();
@@ -161,6 +142,7 @@ export class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (this.phase !== 'playing') return;
+    this.mysteryRewards.update(this.time.now);
     this.checkGameOver(delta);
   }
 
@@ -213,12 +195,19 @@ export class GameScene extends Phaser.Scene {
       },
     });
 
+    // Mystery reward check
+    const reward = this.mysteryRewards.checkMerge();
+    const boostMult = reward === 'score_boost' ? MYSTERY.SCORE_BOOST_MULT : 1;
+    const goldenMult = this.mysteryRewards.getGoldenMultiplier();
+
     // VFX
     this.effects.emitMergeParticles(mergeX, mergeY, comboCount);
     this.effects.emitFlash(mergeX, mergeY);
-    const finalScore = Math.round(result.scoreAwarded * multiplier);
-    const label = multiplier > 1 ? `+${finalScore} x${multiplier}` : `+${finalScore}`;
+    const finalScore = Math.round(result.scoreAwarded * multiplier * boostMult * goldenMult);
+    const label = multiplier > 1 || boostMult > 1 || goldenMult > 1
+      ? `+${finalScore} x${Math.round(multiplier * boostMult * goldenMult)}` : `+${finalScore}`;
     this.effects.emitFloatingScore(mergeX, mergeY, label);
+    if (reward) this.handleMysteryReward(reward, mergeX, mergeY);
 
     // Delayed new animal bounce-in
     this.time.delayedCall(120, () => {
@@ -340,43 +329,53 @@ export class GameScene extends Phaser.Scene {
     for (const id of ids) {
       const ach = ACHIEVEMENTS.find(a => a.id === id);
       if (!ach) continue;
-      const toast = this.add.text(GAME.WIDTH / 2, -30, `🏆 ${ach.name}!`, {
-        fontSize: '22px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
-      }).setOrigin(0.5).setDepth(20);
-      this.tweens.add({
-        targets: toast, y: 8, duration: 300, ease: 'Back.easeOut',
-        onComplete: () => {
-          this.time.delayedCall(1500, () => {
-            this.tweens.add({ targets: toast, y: -30, alpha: 0, duration: 300, onComplete: () => toast.destroy() });
-          });
-        },
-      });
+      this.flashText(GAME.WIDTH / 2, -30, `🏆 ${ach.name}!`, '#D4A24C', 22, { y: 8, hold: 1500 });
     }
   }
 
   private executeUndo(): void {
-    if (!this.undoAvailable || this.undosRemaining <= 0) return;
-    if (!this.spawner.undoLastDrop()) return;
+    if (!this.undoAvailable || this.undosRemaining <= 0 || !this.spawner.undoLastDrop()) return;
     this.undoAvailable = false;
     this.undosRemaining--;
     this.undoTimer?.destroy();
     this.hideUndoBtn();
     this.updateNextPreview();
-    // Cancel drop cooldown, re-enable input immediately
     this.dropCooldownTimer?.destroy();
     this.dropCooldown = false;
     if (this.phase === 'playing') this.inputHandler.enable();
-    // Visual feedback
-    const t = this.add.text(GAME.WIDTH / 2, GAME.HEIGHT * 0.4, 'Отмена!', {
-      fontSize: '28px', color: '#4A7A30', fontFamily: BRAND.FONT_DISPLAY,
-    }).setOrigin(0.5).setDepth(20).setAlpha(0);
-    this.tweens.add({ targets: t, alpha: 1, y: GAME.HEIGHT * 0.35, duration: 200, ease: 'Power2',
-      onComplete: () => this.time.delayedCall(400, () => this.tweens.add({ targets: t, alpha: 0, duration: 300, onComplete: () => t.destroy() })),
+    this.flashText(GAME.WIDTH / 2, GAME.HEIGHT * 0.4, 'Отмена!', '#4A7A30', 28);
+  }
+
+  /** Reusable flash text: appears, holds, fades out */
+  private flashText(x: number, y: number, msg: string, color: string, size: number, opts?: { y?: number; hold?: number }): void {
+    const t = this.add.text(x, y, msg, { fontSize: `${size}px`, color, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(20);
+    const targetY = opts?.y ?? y - 30;
+    this.tweens.add({ targets: t, y: targetY, duration: 300, ease: 'Back.easeOut',
+      onComplete: () => this.time.delayedCall(opts?.hold ?? 400, () => this.tweens.add({ targets: t, alpha: 0, y: targetY - 20, duration: 300, onComplete: () => t.destroy() })),
     });
   }
 
   private showUndoBtn(): void { if (this.undoBtn) this.tweens.add({ targets: this.undoBtn, alpha: 1, duration: 150 }); }
   private hideUndoBtn(): void { if (this.undoBtn) this.tweens.add({ targets: this.undoBtn, alpha: 0, duration: 150 }); }
+
+  private handleMysteryReward(type: MysteryRewardType, x: number, y: number): void {
+    const showText = (t: string) => {
+      const txt = this.add.text(x, y - 30, t, {
+        fontSize: '32px', color: '#FFD700', fontFamily: BRAND.FONT_DISPLAY, stroke: '#3D2B1F', strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(20);
+      this.tweens.add({ targets: txt, y: y - 80, alpha: 0, scaleX: 1.5, scaleY: 1.5, duration: 800, onComplete: () => txt.destroy() });
+    };
+    if (type === 'score_boost') { showText('×3!'); }
+    else if (type === 'golden_mode') {
+      this.mysteryRewards.activateGoldenMode(this.time.now);
+      showText('Золотой режим!');
+      const bar = this.add.rectangle(GAME.WIDTH / 2, 4, GAME.WIDTH, 6, 0xffd700).setDepth(20);
+      this.tweens.add({ targets: bar, scaleX: 0, duration: MYSTERY.GOLDEN_DURATION_MS, onComplete: () => bar.destroy() });
+    } else {
+      this.score.addScore(MYSTERY.SCORE_SHOWER_BONUS);
+      showText(`+${MYSTERY.SCORE_SHOWER_BONUS}`);
+    }
+  }
 
   shutdown(): void {
     this.audio?.destroy();
