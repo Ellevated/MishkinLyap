@@ -19,6 +19,8 @@ import { AudioManager } from '../game/AudioManager';
 import { ComboTracker } from '../game/ComboTracker';
 import { EffectsManager } from '../game/EffectsManager';
 import { MissionTracker } from '../game/MissionTracker';
+import { AchievementManager } from '../game/AchievementManager';
+import { ACHIEVEMENTS } from '../config/GameConfig';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
 
@@ -32,6 +34,7 @@ export class GameScene extends Phaser.Scene {
   private combo!: ComboTracker;
   private effects!: EffectsManager;
   private missionTracker!: MissionTracker;
+  private achievements!: AchievementManager;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -67,6 +70,7 @@ export class GameScene extends Phaser.Scene {
     this.effects = new EffectsManager(this, 75);
     this.missionTracker = new MissionTracker();
     this.missionTracker.loadOrReset();
+    this.achievements = new AchievementManager();
 
     // Wire events
     this.events.on(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
@@ -141,9 +145,11 @@ export class GameScene extends Phaser.Scene {
     if (result.newTier > this.sessionStats.highestTier) this.sessionStats.highestTier = result.newTier;
     this.effects.triggerMergeToast(result.newTier, comboCount);
 
-    // Missions + discover
+    // Missions + achievements + discover
     this.missionTracker.reportMerge(result.newTier);
     if (comboCount >= 2) this.missionTracker.reportCombo(comboCount);
+    this.showAchievementToasts(this.achievements.reportMerge(result.newTier));
+    if (comboCount >= 2) this.showAchievementToasts(this.achievements.reportCombo(comboCount));
     this.score.discoverTier(result.newTier);
 
     // Squash old animals
@@ -239,6 +245,7 @@ export class GameScene extends Phaser.Scene {
     if (isNewRecord) this.bridge?.saveHighScore(this.score.getBestScore());
     this.missionTracker.reportScore(this.score.getScore());
     this.missionTracker.reportGamePlayed();
+    this.showAchievementToasts(this.achievements.reportGameEnd(this.score.getScore()));
     this.input.enabled = false;
     this.scene.launch('GameOver', {
       score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats,
@@ -271,6 +278,24 @@ export class GameScene extends Phaser.Scene {
       this.nextPreview = this.add.image(GAME.WIDTH - 50, 50, cfg.key).setDisplaySize(40, 40).setDepth(10);
     } else {
       this.nextPreview = this.add.circle(GAME.WIDTH - 50, 50, 20, cfg.color).setDepth(10) as any;
+    }
+  }
+
+  private showAchievementToasts(ids: string[]): void {
+    for (const id of ids) {
+      const ach = ACHIEVEMENTS.find(a => a.id === id);
+      if (!ach) continue;
+      const toast = this.add.text(GAME.WIDTH / 2, -30, `🏆 ${ach.name}!`, {
+        fontSize: '22px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(0.5).setDepth(20);
+      this.tweens.add({
+        targets: toast, y: 8, duration: 300, ease: 'Back.easeOut',
+        onComplete: () => {
+          this.time.delayedCall(1500, () => {
+            this.tweens.add({ targets: toast, y: -30, alpha: 0, duration: 300, onComplete: () => toast.destroy() });
+          });
+        },
+      });
     }
   }
 

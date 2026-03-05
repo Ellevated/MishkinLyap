@@ -105,6 +105,18 @@ export class MenuScene extends Phaser.Scene {
     msBtn.on('pointerout', () => msBtn.setFillStyle(0xede0c4));
     msBtn.on('pointerup', () => this.scene.start('Missions'));
 
+    // Achievements button
+    const achBtnY = msBtnY + 60;
+    const achBtn = this.add.rectangle(width / 2, achBtnY, 200, 52, 0xede0c4);
+    achBtn.setStrokeStyle(2, 0x8a6420);
+    achBtn.setInteractive({ useHandCursor: true });
+    this.add.text(width / 2, achBtnY, 'Награды', {
+      fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+    }).setOrigin(0.5);
+    achBtn.on('pointerover', () => achBtn.setFillStyle(0xe8c47a));
+    achBtn.on('pointerout', () => achBtn.setFillStyle(0xede0c4));
+    achBtn.on('pointerup', () => this.scene.start('Achievements'));
+
     // Mute toggle
     const audio = new AudioManager();
     const muteBtn = this.add.text(width - 20, 20, audio.isMuted() ? '🔇' : '🔊', {

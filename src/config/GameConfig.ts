@@ -144,6 +144,43 @@ export const DEFAULT_MISSIONS: MissionSaveData = {
   date: '', active: [], allCompleted: false,
 };
 
+export interface CareerStats {
+  totalMerges: number;
+  totalScore: number;
+  gamesPlayed: number;
+  highestTier: number;
+  maxCombo: number;
+}
+
+export const DEFAULT_CAREER: CareerStats = {
+  totalMerges: 0, totalScore: 0, gamesPlayed: 0, highestTier: 1, maxCombo: 0,
+};
+
+export interface AchievementDef {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+  readonly icon: string;
+  readonly check: (s: CareerStats) => boolean;
+  readonly progress?: (s: CareerStats) => number;
+  readonly target?: number;
+}
+
+export const ACHIEVEMENTS: readonly AchievementDef[] = [
+  { id: 'first_merge',  name: 'Первый мердж',   description: 'Сделайте первое слияние',    icon: '🐹', check: s => s.totalMerges >= 1, progress: s => s.totalMerges, target: 1 },
+  { id: 'merges_50',    name: 'Мерджер',         description: 'Сделайте 50 слияний',        icon: '🔄', check: s => s.totalMerges >= 50, progress: s => s.totalMerges, target: 50 },
+  { id: 'merges_500',   name: 'Мердж-мастер',    description: 'Сделайте 500 слияний',       icon: '⭐', check: s => s.totalMerges >= 500, progress: s => s.totalMerges, target: 500 },
+  { id: 'create_cat',   name: 'Котик!',          description: 'Создайте кота (тир 4)',      icon: '🐱', check: s => s.highestTier >= 4, progress: s => s.highestTier, target: 4 },
+  { id: 'create_fox',   name: 'Лисичка!',        description: 'Создайте лису (тир 6)',      icon: '🦊', check: s => s.highestTier >= 6, progress: s => s.highestTier, target: 6 },
+  { id: 'create_panda', name: 'Панда!',          description: 'Создайте панду (тир 7)',     icon: '🐼', check: s => s.highestTier >= 7, progress: s => s.highestTier, target: 7 },
+  { id: 'create_bear',  name: 'МЕДВЕДЬ!',        description: 'Создайте медведя (тир 8)',   icon: '🐻', check: s => s.highestTier >= 8, progress: s => s.highestTier, target: 8 },
+  { id: 'score_5k',     name: 'Пять тысяч',      description: 'Наберите 5000 за карьеру',   icon: '💫', check: s => s.totalScore >= 5000, progress: s => s.totalScore, target: 5000 },
+  { id: 'score_50k',    name: 'Полтинник',        description: 'Наберите 50000 за карьеру',  icon: '🏆', check: s => s.totalScore >= 50000, progress: s => s.totalScore, target: 50000 },
+  { id: 'games_10',     name: 'Завсегдатай',      description: 'Сыграйте 10 раундов',       icon: '🎮', check: s => s.gamesPlayed >= 10, progress: s => s.gamesPlayed, target: 10 },
+  { id: 'games_100',    name: 'Ветеран',          description: 'Сыграйте 100 раундов',      icon: '🎖️', check: s => s.gamesPlayed >= 100, progress: s => s.gamesPlayed, target: 100 },
+  { id: 'combo_5',      name: 'Каскадёр',         description: 'Соберите комбо x5',          icon: '🔥', check: s => s.maxCombo >= 5, progress: s => s.maxCombo, target: 5 },
+] as const;
+
 export interface PersistedData {
   v: number;
   best: number;
@@ -151,9 +188,12 @@ export interface PersistedData {
   discoveredTiers: number[];
   streak: StreakData;
   missions: MissionSaveData;
+  career: CareerStats;
+  unlockedAchievements: string[];
 }
 
 export const DEFAULT_DATA: PersistedData = {
   v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3],
   streak: { ...DEFAULT_STREAK }, missions: { ...DEFAULT_MISSIONS },
+  career: { ...DEFAULT_CAREER }, unlockedAchievements: [],
 };

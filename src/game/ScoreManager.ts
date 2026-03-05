@@ -14,6 +14,7 @@ import {
   DEFAULT_DATA,
   DEFAULT_STREAK,
   DEFAULT_MISSIONS,
+  DEFAULT_CAREER,
 } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
@@ -85,6 +86,8 @@ export class ScoreManager {
           discoveredTiers: parsed.discoveredTiers ?? [1, 2, 3],
           streak: parsed.streak ?? { ...DEFAULT_STREAK },
           missions: parsed.missions ?? { ...DEFAULT_MISSIONS },
+          career: parsed.career ?? { ...DEFAULT_CAREER },
+          unlockedAchievements: parsed.unlockedAchievements ?? [],
         };
       }
 
@@ -92,6 +95,8 @@ export class ScoreManager {
       if (!Array.isArray(parsed.discoveredTiers)) parsed.discoveredTiers = [1, 2, 3];
       if (!parsed.streak) parsed.streak = { ...DEFAULT_STREAK };
       if (!parsed.missions) parsed.missions = { ...DEFAULT_MISSIONS };
+      if (!parsed.career) parsed.career = { ...DEFAULT_CAREER };
+      if (!Array.isArray(parsed.unlockedAchievements)) parsed.unlockedAchievements = [];
 
       return parsed as PersistedData;
     } catch {
