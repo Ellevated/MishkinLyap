@@ -21,8 +21,12 @@ export class GameOverScene extends Phaser.Scene {
     this.bridge = this.registry.get('bridge') as IPlatformBridge;
     const { width, height } = this.scale;
 
-    // Dim overlay
-    this.add.rectangle(width / 2, height / 2, width, height, 0x3d2b1f, 0.6);
+    // Ensure this scene receives input on top of paused GameScene
+    this.scene.bringToTop();
+
+    // Dim overlay — interactive to block clicks from reaching scenes below
+    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x3d2b1f, 0.6);
+    overlay.setInteractive();
 
     // Panel
     const panelY = height * 0.35;
@@ -33,14 +37,14 @@ export class GameOverScene extends Phaser.Scene {
     this.add.text(width / 2, panelY - 20, 'Ой, ляп!', {
       fontSize: '36px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Marmelad, sans-serif',
+      fontFamily: BRAND.FONT_DISPLAY,
     }).setOrigin(0.5);
 
     // Score
     this.add.text(width / 2, panelY + 30, `Счёт: ${data.score}`, {
       fontSize: '28px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: BRAND.FONT_BODY,
       fontStyle: 'bold',
     }).setOrigin(0.5);
 
@@ -48,22 +52,23 @@ export class GameOverScene extends Phaser.Scene {
     this.add.text(width / 2, panelY + 65, `Рекорд: ${data.best}`, {
       fontSize: '18px',
       color: BRAND.TEXT_SECONDARY,
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: BRAND.FONT_BODY,
     }).setOrigin(0.5);
 
     // Play Again button
     const playBtnY = panelY + 120;
     this.createButton(width / 2, playBtnY, 'Ещё разок', 0xd4a24c, () => {
-      this.scene.stop();
-      this.scene.get('Game').scene.restart();
+      this.scene.stop();          // stop GameOverScene first
+      this.scene.stop('Game');    // stop paused GameScene
+      this.scene.start('Game');   // start Game fresh
     });
 
     // Menu button
     const menuBtnY = panelY + 185;
     this.createButton(width / 2, menuBtnY, 'Меню', 0xede0c4, () => {
-      this.scene.stop('Game');
-      this.scene.stop();
-      this.scene.start('Menu');
+      this.scene.stop();          // stop GameOverScene first
+      this.scene.stop('Game');    // stop GameScene
+      this.scene.start('Menu');   // start Menu
     });
   }
 
@@ -77,7 +82,7 @@ export class GameOverScene extends Phaser.Scene {
     this.add.text(x, y, label, {
       fontSize: '20px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: BRAND.FONT_BODY,
       fontStyle: 'bold',
     }).setOrigin(0.5);
 

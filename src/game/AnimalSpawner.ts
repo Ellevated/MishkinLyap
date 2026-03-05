@@ -50,7 +50,7 @@ export class AnimalSpawner {
   /** Remove an Animal from scene and physics world */
   destroy(animal: Animal): void {
     this.animals.delete(animal);
-    this.physics.removeBody(animal.body);
+    if (animal.body) this.physics.removeBody(animal.body);
     animal.destroyAnimal();
   }
 
@@ -67,7 +67,7 @@ export class AnimalSpawner {
   /** Destroy all animals (for game restart) */
   destroyAll(): void {
     for (const animal of this.animals) {
-      this.physics.removeBody(animal.body);
+      if (animal.body) this.physics.removeBody(animal.body);
       animal.destroyAnimal();
     }
     this.animals.clear();

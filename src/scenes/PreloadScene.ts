@@ -30,7 +30,7 @@ export class PreloadScene extends Phaser.Scene {
     const label = this.add.text(width / 2, barY - 30, 'Загрузка...', {
       fontSize: '18px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: BRAND.FONT_BODY,
     }).setOrigin(0.5);
 
     this.load.on('progress', (value: number) => {

@@ -7,7 +7,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME } from './config/GameConfig';
+import { GAME, PHYSICS } from './config/GameConfig';
 import type { IPlatformBridge } from './sdk/IGamePlatform';
 import { YandexPlatform } from './sdk/YandexPlatform';
 import { MockPlatform } from './sdk/MockPlatform';
@@ -40,7 +40,10 @@ async function boot(): Promise<void> {
   const bridge = createBridge();
   await bridge.init();
 
-  new Phaser.Game({
+  const debugParam = new URLSearchParams(window.location.search).get('debug');
+  const showDebug = debugParam !== null ? debugParam === '1' : __DEV__;
+
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     width: GAME.WIDTH,
     height: GAME.HEIGHT,
@@ -53,17 +56,20 @@ async function boot(): Promise<void> {
     physics: {
       default: 'matter',
       matter: {
-        gravity: { x: 0, y: GAME.HEIGHT * 0.002 },
-        debug: __DEV__,
+        gravity: { x: 0, y: PHYSICS.GRAVITY_Y },
+        debug: showDebug,
       },
     },
     scene: [PreloadScene, MenuScene, GameScene, GameOverScene],
     callbacks: {
-      preBoot: (game) => {
-        game.registry.set('bridge', bridge);
+      preBoot: (g) => {
+        g.registry.set('bridge', bridge);
       },
     },
   });
+
+  // Expose for testing/debugging
+  (window as any).__PHASER_GAME__ = game;
 }
 
 boot().catch((err) => logError('boot', err));

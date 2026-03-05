@@ -59,7 +59,8 @@ export class PhysicsManager {
   /** Remove a body from the world and tracked set */
   removeBody(body: MatterJS.BodyType): void {
     this.trackedBodies.delete(body);
-    this.scene.matter.world.remove(body);
+    // Matter world may be null during scene shutdown (MatterPlugin shuts down first)
+    this.scene?.matter?.world?.remove(body);
   }
 
   /** Get count of tracked (non-wall) bodies */

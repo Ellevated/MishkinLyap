@@ -29,7 +29,7 @@ export class MenuScene extends Phaser.Scene {
     this.add.text(width / 2, height * 0.25, 'Мишкин\nЛяп', {
       fontSize: '48px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Marmelad, sans-serif',
+      fontFamily: BRAND.FONT_DISPLAY,
       align: 'center',
     }).setOrigin(0.5);
 
@@ -40,7 +40,7 @@ export class MenuScene extends Phaser.Scene {
       this.add.text(width / 2, height * 0.42, `Рекорд: ${best}`, {
         fontSize: '22px',
         color: BRAND.TEXT_SECONDARY,
-        fontFamily: 'Nunito, sans-serif',
+        fontFamily: BRAND.FONT_BODY,
       }).setOrigin(0.5);
     }
 
@@ -53,7 +53,7 @@ export class MenuScene extends Phaser.Scene {
     const btnText = this.add.text(width / 2, btnY, 'Играть', {
       fontSize: '22px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Nunito, sans-serif',
+      fontFamily: BRAND.FONT_BODY,
       fontStyle: 'bold',
     }).setOrigin(0.5);
 

@@ -65,8 +65,11 @@ export class MergeDetector {
   }
 
   /**
-   * 5-Guard Pattern (INVARIANT — most critical code in the game)
-   * All 5 guards must pass for a merge to occur.
+   * 4-Guard Pattern (INVARIANT — most critical code in the game)
+   * All 4 guards must pass for a merge to occur.
+   * NOTE: isSettled check was removed — it blocked all merges because
+   * collisionstart fires before animals settle, and no re-fire after settle.
+   * Suika-style games merge on contact. isSettled is still used for game-over only.
    */
   private shouldMerge(
     bodyA: MatterJS.BodyType,
@@ -86,9 +89,6 @@ export class MergeDetector {
 
     // Guard 4: Neither tier is 8 (Bear, final)
     if (animalA.tier >= MAX_TIER) return false;
-
-    // Guard 5: Both have isSettled === true
-    if (!animalA.isSettled || !animalB.isSettled) return false;
 
     return true;
   }
@@ -117,6 +117,7 @@ export class MergeDetector {
   }
 
   destroy(): void {
-    this.scene.matter.world.off('collisionstart', this.onCollision, this);
+    // Matter world may already be null during scene shutdown (MatterPlugin shuts down first)
+    this.scene?.matter?.world?.off('collisionstart', this.onCollision, this);
   }
 }

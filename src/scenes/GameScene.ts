@@ -61,6 +61,9 @@ export class GameScene extends Phaser.Scene {
     this.inputHandler.enable();
     this.bridge?.gameplayStart();
 
+    // Wire shutdown to Phaser lifecycle for proper cleanup on restart
+    this.events.once('shutdown', this.shutdown, this);
+
     // Visual container walls
     const bounds = this.physicsManager.getContainerBounds();
     this.add.rectangle(
@@ -83,7 +86,7 @@ export class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', {
       fontSize: '48px',
       color: BRAND.TEXT_INK,
-      fontFamily: 'Marmelad, sans-serif',
+      fontFamily: BRAND.FONT_DISPLAY,
     }).setOrigin(0.5).setDepth(10);
 
     // UI: game over line
@@ -130,8 +133,8 @@ export class GameScene extends Phaser.Scene {
       duration: 100,
       ease: 'Power2',
       onComplete: () => {
-        this.spawner.destroy(result.removedA);
-        this.spawner.destroy(result.removedB);
+        try { this.spawner.destroy(result.removedA); } catch { /* already destroyed */ }
+        try { this.spawner.destroy(result.removedB); } catch { /* already destroyed */ }
       },
     });
 
@@ -221,6 +224,9 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.gameplayStop();
     this.score.checkAndSaveBest();
 
+    // Disable input on this scene so GameOverScene overlay can receive clicks
+    this.input.enabled = false;
+
     this.scene.launch('GameOver', {
       score: this.score.getScore(),
       best: this.score.getBestScore(),
@@ -249,6 +255,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    this.tweens.killAll();
+    this.time.removeAllEvents();
     this.events.off(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
     this.events.off(EVENTS.ANIMAL_MERGED, this.onMerge, this);
     this.events.off(EVENTS.SCORE_UPDATED, this.onScoreUpdated, this);

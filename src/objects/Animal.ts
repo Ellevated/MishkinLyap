@@ -7,7 +7,7 @@
  */
 
 import Phaser from 'phaser';
-import { ANIMALS, PHYSICS } from '../config/GameConfig';
+import { ANIMALS, PHYSICS, BRAND } from '../config/GameConfig';
 import type { AnimalConfig } from '../config/GameConfig';
 
 const SETTLED_VELOCITY_THRESHOLD = 0.3;
@@ -28,7 +28,11 @@ export class Animal extends Phaser.GameObjects.Container {
     // Visual: sprite if loaded, fallback to colored circle
     if (scene.textures.exists(this.config.key)) {
       const sprite = scene.add.image(0, 0, this.config.key);
-      sprite.setDisplaySize(radius * 2, radius * 2);
+      // Scale proportionally to fit inside the physics circle diameter
+      const frame = sprite.frame;
+      const maxDim = Math.max(frame.width, frame.height);
+      const scaleFactor = (radius * 2) / maxDim;
+      sprite.setScale(scaleFactor);
       this.add(sprite);
     } else {
       const circle = scene.add.circle(0, 0, radius, this.config.color);
@@ -37,7 +41,7 @@ export class Animal extends Phaser.GameObjects.Container {
       const label = scene.add.text(0, 0, String(tier), {
         fontSize: `${Math.max(16, radius * 0.6)}px`,
         color: '#3D2B1F',
-        fontFamily: 'Marmelad, sans-serif',
+        fontFamily: BRAND.FONT_DISPLAY,
         fontStyle: 'bold',
       }).setOrigin(0.5);
       this.add(label);
@@ -65,22 +69,27 @@ export class Animal extends Phaser.GameObjects.Container {
     if (!this.body) return;
     this.setPosition(this.body.position.x, this.body.position.y);
 
-    // Check settled state
-    if (!this.isSettled && !this.isMerging) {
+    // Continuously track settled state — must reset when animal gets bumped
+    if (!this.isMerging) {
       const vx = this.body.velocity.x;
       const vy = this.body.velocity.y;
       const speed = Math.sqrt(vx * vx + vy * vy);
-      if (speed < SETTLED_VELOCITY_THRESHOLD) {
-        this.isSettled = true;
-      }
+      this.isSettled = speed < SETTLED_VELOCITY_THRESHOLD;
     }
   }
 
+  /**
+   * Override Container.destroy() — Phaser calls this directly during scene shutdown.
+   * Must nullify Matter.js body before super.destroy() because Container.destroy()
+   * tries to call body.destroy() which doesn't exist on raw Matter.js bodies.
+   */
+  destroy(fromScene?: boolean): void {
+    this.scene?.events?.off('update', this.syncPosition, this);
+    (this as any).body = null;
+    super.destroy(fromScene);
+  }
+
   destroyAnimal(): void {
-    this.scene?.events.off('update', this.syncPosition, this);
-    if (this.body) {
-      this.scene?.matter.world.remove(this.body);
-    }
     this.destroy();
   }
 }

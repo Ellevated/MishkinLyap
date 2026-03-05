@@ -45,6 +45,7 @@ export class InputHandler {
   }
 
   destroy(): void {
-    this.scene.input.off('pointerdown', this.onPointerDown, this);
+    // Input plugin may be null during scene shutdown
+    this.scene?.input?.off('pointerdown', this.onPointerDown, this);
   }
 }
