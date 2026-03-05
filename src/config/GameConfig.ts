@@ -98,12 +98,17 @@ export const JUICE = {
   SHAKE_MIN_TIER: 4,
   GLOW_MIN_TIER: 5,
   GLOW_COLOR: 0xFFD700,
-  GLOW_OUTER_STRENGTH: 4,
+  GLOW_OUTER_STRENGTH: 6,
   GLOW_PULSE_MAX: 6,
   GLOW_PULSE_DURATION: 800,
   TRAIL_LIFESPAN: 150,
   TRAIL_FREQUENCY: 40,
   TRAIL_ALPHA: 0.4,
+} as const;
+
+export const VISUAL = {
+  /** Sprite scale overflow — ratio beyond physics circle. 1.0 = exact fit, 1.25 = 25% overflow */
+  SPRITE_OVERFLOW: 1.25,
 } as const;
 
 export const FEVER = {
