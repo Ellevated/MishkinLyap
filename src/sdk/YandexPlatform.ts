@@ -15,7 +15,7 @@
  * #7 — no setInterval for ads
  */
 
-import type { IPlatformBridge } from './IGamePlatform';
+import type { IPlatformBridge, LeaderboardEntry } from './IGamePlatform';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 declare const YaGames: {
@@ -156,6 +156,29 @@ export class YandexPlatform implements IPlatformBridge {
       logError('loadHighScore', e);
     }
     return 0;
+  }
+
+  async getLeaderboardEntries(count: number): Promise<LeaderboardEntry[]> {
+    try {
+      if (!this.lb) return [];
+      const res = await this.lb.getLeaderboardEntries('score', {
+        quantityTop: count,
+        includeUser: true,
+      });
+      const entries: LeaderboardEntry[] = [];
+      for (const e of res.entries) {
+        entries.push({
+          rank: e.rank,
+          name: e.player.publicName || `Игрок ${e.rank}`,
+          score: e.score,
+          isPlayer: e.player.uniqueID === this.player?.getUniqueID(),
+        });
+      }
+      return entries;
+    } catch (e) {
+      logError('getLeaderboardEntries', e);
+      return [];
+    }
   }
 
   /** Set callbacks for game pause/resume (used by GameScene to handle ads) */

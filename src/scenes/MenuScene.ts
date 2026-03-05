@@ -81,6 +81,18 @@ export class MenuScene extends Phaser.Scene {
     bestBtn.on('pointerout', () => bestBtn.setFillStyle(0xede0c4));
     bestBtn.on('pointerup', () => this.scene.start('Bestiary'));
 
+    // Leaderboard button
+    const lbBtnY = bestBtnY + 60;
+    const lbBtn = this.add.rectangle(width / 2, lbBtnY, 200, 52, 0xede0c4);
+    lbBtn.setStrokeStyle(2, 0x8a6420);
+    lbBtn.setInteractive({ useHandCursor: true });
+    this.add.text(width / 2, lbBtnY, 'Рейтинг', {
+      fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+    }).setOrigin(0.5);
+    lbBtn.on('pointerover', () => lbBtn.setFillStyle(0xe8c47a));
+    lbBtn.on('pointerout', () => lbBtn.setFillStyle(0xede0c4));
+    lbBtn.on('pointerup', () => this.scene.start('Leaderboard', { returnTo: 'Menu' }));
+
     // Mute toggle
     const audio = new AudioManager();
     const muteBtn = this.add.text(width - 20, 20, audio.isMuted() ? '🔇' : '🔊', {

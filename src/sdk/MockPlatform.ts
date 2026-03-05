@@ -6,7 +6,7 @@
  * Does NOT: call real SDK, persist data across reloads
  */
 
-import type { IPlatformBridge } from './IGamePlatform';
+import type { IPlatformBridge, LeaderboardEntry } from './IGamePlatform';
 
 export class MockPlatform implements IPlatformBridge {
   private highScore = 0;
@@ -51,6 +51,17 @@ export class MockPlatform implements IPlatformBridge {
   async loadHighScore(): Promise<number> {
     console.warn(`[SDK Mock] loadHighScore: ${this.highScore}`);
     return this.highScore;
+  }
+
+  async getLeaderboardEntries(count: number): Promise<LeaderboardEntry[]> {
+    console.warn('[SDK Mock] getLeaderboardEntries');
+    const names = ['Мария П.', 'Ольга С.', 'Татьяна К.', 'Елена В.', 'Наталья Б.',
+      'Людмила Г.', 'Светлана Д.', 'Ирина М.', 'Вы', 'Нина Л.'];
+    return names.slice(0, count).map((name, i) => ({
+      rank: i + 1, name,
+      score: Math.max(10000 - i * 800 + Math.floor(Math.random() * 200), 100),
+      isPlayer: name === 'Вы',
+    }));
   }
 
   private delay(ms: number): Promise<void> {

@@ -16,6 +16,7 @@ import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
 import { GameOverScene } from './scenes/GameOverScene';
 import { BestiaryScene } from './scenes/BestiaryScene';
+import { LeaderboardScene } from './scenes/LeaderboardScene';
 
 function logError(context: string, err: unknown): void {
   console.error(`[MishkinLyap] ${context}:`, err);
@@ -61,7 +62,7 @@ async function boot(): Promise<void> {
         debug: showDebug,
       },
     },
-    scene: [PreloadScene, MenuScene, GameScene, GameOverScene, BestiaryScene],
+    scene: [PreloadScene, MenuScene, GameScene, GameOverScene, BestiaryScene, LeaderboardScene],
     callbacks: {
       preBoot: (g) => {
         g.registry.set('bridge', bridge);

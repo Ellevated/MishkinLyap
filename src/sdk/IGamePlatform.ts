@@ -6,6 +6,13 @@
  * Does NOT: contain implementation, import game modules
  */
 
+export interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  score: number;
+  isPlayer: boolean;
+}
+
 export interface IPlatformBridge {
   /** Initialize SDK. Must complete before Phaser boots. */
   init(): Promise<void>;
@@ -33,4 +40,7 @@ export interface IPlatformBridge {
 
   /** Load high score from platform storage */
   loadHighScore(): Promise<number>;
+
+  /** Get top leaderboard entries + player's entry */
+  getLeaderboardEntries(count: number): Promise<LeaderboardEntry[]>;
 }

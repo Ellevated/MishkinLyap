@@ -29,7 +29,7 @@ export class GameOverScene extends Phaser.Scene {
     this.add.rectangle(w / 2, h / 2, w, h, 0x3d2b1f, 0.6).setInteractive();
 
     const panelY = h * 0.3;
-    const panelH = data.canContinue ? 460 : (data.isNewRecord ? 420 : 400);
+    const panelH = data.canContinue ? 520 : (data.isNewRecord ? 480 : 460);
     this.add.rectangle(w / 2, panelY + panelH / 2 - 30, 320, panelH, 0xf0e5ca).setStrokeStyle(3, 0xd6c6a9);
 
     let y = panelY - 15;
@@ -75,6 +75,8 @@ export class GameOverScene extends Phaser.Scene {
     y += 60;
 
     this.btn(w / 2, y, 'Меню', 0xede0c4, () => { this.scene.stop(); this.scene.stop('Game'); this.scene.start('Menu'); });
+    y += 60;
+    this.btn(w / 2, y, 'Рейтинг', 0xede0c4, () => { this.scene.stop(); this.scene.stop('Game'); this.scene.start('Leaderboard', { returnTo: 'Menu' }); });
   }
 
   private async doContinue(bridge: IPlatformBridge): Promise<void> {

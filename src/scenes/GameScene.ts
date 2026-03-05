@@ -229,7 +229,8 @@ export class GameScene extends Phaser.Scene {
     this.audio.playGameOver();
     this.audio.stopMusic();
     this.bridge?.gameplayStop();
-    this.score.checkAndSaveBest();
+    const isNewRecord = this.score.checkAndSaveBest();
+    if (isNewRecord) this.bridge?.saveHighScore(this.score.getBestScore());
     this.input.enabled = false;
     this.scene.launch('GameOver', {
       score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats,
