@@ -24,6 +24,7 @@ import { MissionTracker } from '../game/MissionTracker';
 import { AchievementManager } from '../game/AchievementManager';
 import { GameModeManager } from '../game/GameModeManager';
 import { MysteryRewardManager } from '../game/MysteryRewardManager';
+import { TutorialManager } from '../game/TutorialManager';
 import { ACHIEVEMENTS } from '../config/GameConfig';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
@@ -41,6 +42,7 @@ export class GameScene extends Phaser.Scene {
   private achievements!: AchievementManager;
   private modeManager!: GameModeManager;
   private mysteryRewards!: MysteryRewardManager;
+  private tutorial!: TutorialManager;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -90,6 +92,7 @@ export class GameScene extends Phaser.Scene {
     this.missionTracker.loadOrReset();
     this.achievements = new AchievementManager();
     this.mysteryRewards = new MysteryRewardManager();
+    this.tutorial = new TutorialManager(this, this.score);
 
     // Adjust gravity for relaxation mode
     if (mode === 'relaxation') {
@@ -143,6 +146,7 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.phase !== 'playing') return;
     this.mysteryRewards.update(this.time.now);
+    this.tutorial.checkStuck(delta);
     this.checkGameOver(delta);
   }
 
@@ -152,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.inputHandler.disable();
     this.audio.playDrop();
     this.spawner.spawnAtDrop(data.x);
+    this.tutorial.onDrop();
     this.updateNextPreview();
     this.dropCooldownTimer = this.time.delayedCall(GAME.DROP_COOLDOWN_MS, () => {
       this.dropCooldown = false;
@@ -173,6 +178,7 @@ export class GameScene extends Phaser.Scene {
     this.audio.playMerge(comboCount);
     this.updateComboUI(comboCount);
 
+    this.tutorial.onMerge();
     // Session stats + toasts
     this.sessionStats.mergeCount++;
     if (result.newTier > this.sessionStats.highestTier) this.sessionStats.highestTier = result.newTier;
@@ -245,6 +251,7 @@ export class GameScene extends Phaser.Scene {
       this.scoreText.setColor('#D4A24C');
       this.time.delayedCall(200, () => this.scoreText.setColor(BRAND.TEXT_INK));
     }
+    this.tutorial.onScoreReached(to);
   }
 
   private updateComboUI(count: number): void {
@@ -385,6 +392,7 @@ export class GameScene extends Phaser.Scene {
     this.events.off(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
     this.events.off(EVENTS.ANIMAL_MERGED, this.onMerge, this);
     this.events.off(EVENTS.SCORE_UPDATED, this.onScoreUpdated, this);
+    this.tutorial?.destroy();
     this.inputHandler?.destroy();
     this.merge?.destroy();
     this.spawner?.destroyAll();

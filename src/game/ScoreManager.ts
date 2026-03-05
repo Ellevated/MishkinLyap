@@ -90,6 +90,7 @@ export class ScoreManager {
           career: parsed.career ?? { ...DEFAULT_CAREER },
           unlockedAchievements: parsed.unlockedAchievements ?? [],
           dailyChallenge: parsed.dailyChallenge ?? { ...DEFAULT_DAILY },
+          tutorialDone: parsed.tutorialDone ?? false,
         };
       }
 
@@ -100,6 +101,7 @@ export class ScoreManager {
       if (!parsed.career) parsed.career = { ...DEFAULT_CAREER };
       if (!Array.isArray(parsed.unlockedAchievements)) parsed.unlockedAchievements = [];
       if (!parsed.dailyChallenge) parsed.dailyChallenge = { ...DEFAULT_DAILY };
+      if (parsed.tutorialDone === undefined) parsed.tutorialDone = false;
 
       return parsed as PersistedData;
     } catch {

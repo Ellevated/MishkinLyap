@@ -115,6 +115,11 @@ export class Animal extends Phaser.GameObjects.Container {
     super.destroy(fromScene);
   }
 
+  /** Pulse highlight to suggest merge possibility */
+  showMergeHint(): void {
+    this.scene?.tweens?.add({ targets: this, alpha: 0.5, duration: 300, yoyo: true, repeat: 2 });
+  }
+
   destroyAnimal(): void {
     this.destroy();
   }

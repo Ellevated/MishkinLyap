@@ -107,6 +107,16 @@ export const MYSTERY = {
   SCORE_SHOWER_BONUS: 100,
 } as const;
 
+export const TUTORIAL = {
+  STEPS: [
+    { id: 'tap_to_drop', hint: 'Нажмите, чтобы бросить зверька!' },
+    { id: 'first_merge', hint: 'Одинаковые зверята сливаются!' },
+    { id: 'keep_going', hint: 'Собирайте всех зверят!' },
+  ],
+  STUCK_THRESHOLD_MS: 5000,
+  HINT_FADE_MS: 300,
+} as const;
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
 
@@ -222,11 +232,12 @@ export interface PersistedData {
   career: CareerStats;
   unlockedAchievements: string[];
   dailyChallenge: DailyChallengeData;
+  tutorialDone: boolean;
 }
 
 export const DEFAULT_DATA: PersistedData = {
   v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3],
   streak: { ...DEFAULT_STREAK }, missions: { ...DEFAULT_MISSIONS },
   career: { ...DEFAULT_CAREER }, unlockedAchievements: [],
-  dailyChallenge: { ...DEFAULT_DAILY },
+  dailyChallenge: { ...DEFAULT_DAILY }, tutorialDone: false,
 };
