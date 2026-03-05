@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { PhysicsManager } from '../game/PhysicsManager';
@@ -39,6 +39,7 @@ export class GameScene extends Phaser.Scene {
   private dropCooldown = false;
   private gameOverTimer = 0;
   private displayedScore = 0;
+  private continuesUsed = 0;
   private sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
 
   constructor() { super('Game'); }
@@ -48,6 +49,7 @@ export class GameScene extends Phaser.Scene {
     this.phase = 'playing';
     this.gameOverTimer = 0;
     this.displayedScore = 0;
+    this.continuesUsed = 0;
     this.sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
     this.cameras.main.setBackgroundColor(BRAND.BG_CREAM);
 
@@ -231,8 +233,24 @@ export class GameScene extends Phaser.Scene {
     this.input.enabled = false;
     this.scene.launch('GameOver', {
       score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats,
+      canContinue: this.continuesUsed < ADS.MAX_CONTINUES_PER_GAME,
     });
     this.scene.pause();
+  }
+
+  continueAfterAd(): void {
+    const animals = [...this.spawner.getAnimals()];
+    for (const a of animals) {
+      if (a.body.position.y < GAME.GAME_OVER_LINE_Y + 50) this.spawner.destroy(a);
+    }
+    this.phase = 'playing';
+    this.gameOverTimer = 0;
+    this.continuesUsed++;
+    this.input.enabled = true;
+    this.merge.enable();
+    this.inputHandler.enable();
+    this.audio.startMusic();
+    this.bridge?.gameplayStart();
   }
 
   restartGame(): void { this.scene.restart(); }
