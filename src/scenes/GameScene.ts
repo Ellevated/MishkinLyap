@@ -37,6 +37,7 @@ export class GameScene extends Phaser.Scene {
   private gameOverTimer = 0;
   private comboCount = 0;
   private comboResetTimer?: Phaser.Time.TimerEvent;
+  private displayedScore = 0;
 
   constructor() {
     super('Game');
@@ -154,6 +155,23 @@ export class GameScene extends Phaser.Scene {
     // Burst particles at merge point
     this.emitMergeParticles(mergeX, mergeY);
 
+    // White flash on merge
+    const flash = this.add.circle(mergeX, mergeY, 20, 0xffffff, 0.8).setDepth(15);
+    this.tweens.add({
+      targets: flash, scaleX: 2, scaleY: 2, alpha: 0, duration: 100,
+      onComplete: () => flash.destroy(),
+    });
+
+    // Floating score number at merge point
+    const floatText = this.add.text(mergeX, mergeY, `+${result.scoreAwarded}`, {
+      fontSize: '24px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
+      stroke: '#3D2B1F', strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(15);
+    this.tweens.add({
+      targets: floatText, y: mergeY - 60, alpha: 0, duration: 800, ease: 'Power2',
+      onComplete: () => floatText.destroy(),
+    });
+
     // Delayed new animal bounce-in
     this.time.delayedCall(120, () => {
       const newAnimal = this.spawner.spawnAtMerge(mergeX, mergeY, result.newTier);
@@ -202,7 +220,29 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onScoreUpdated(data: { score: number }): void {
-    this.scoreText.setText(String(data.score));
+    const from = this.displayedScore;
+    const to = data.score;
+    this.displayedScore = to;
+
+    // Animated count-up
+    this.tweens.addCounter({
+      from, to, duration: 300, ease: 'Power2',
+      onUpdate: (tween) => {
+        this.scoreText.setText(String(Math.round(tween.getValue() ?? to)));
+      },
+    });
+
+    // Scale pulse
+    this.tweens.add({
+      targets: this.scoreText,
+      scaleX: 1.15, scaleY: 1.15, duration: 100, yoyo: true, ease: 'Power2',
+    });
+
+    // Color flash for big scores
+    if (to - from > 20) {
+      this.scoreText.setColor('#D4A24C');
+      this.time.delayedCall(200, () => this.scoreText.setColor(BRAND.TEXT_INK));
+    }
   }
 
   private checkGameOver(delta: number): void {

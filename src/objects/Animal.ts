@@ -18,6 +18,8 @@ export class Animal extends Phaser.GameObjects.Container {
   public isMerging = false;
   public isSettled = false;
   public body!: MatterJS.BodyType;
+  private wasSettled = false;
+  private landTweenDone = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, tier: number) {
     super(scene, x, y);
@@ -63,6 +65,16 @@ export class Animal extends Phaser.GameObjects.Container {
 
     // Sync visual to body position
     scene.events.on('update', this.syncPosition, this);
+
+    // Stretch tween on drop (squash → stretch during fall)
+    this.setScale(1.1, 0.9);
+    scene.tweens.add({
+      targets: this,
+      scaleX: 0.95,
+      scaleY: 1.05,
+      duration: 200,
+      ease: 'Sine.easeInOut',
+    });
   }
 
   private syncPosition(): void {
@@ -75,6 +87,20 @@ export class Animal extends Phaser.GameObjects.Container {
       const vy = this.body.velocity.y;
       const speed = Math.sqrt(vx * vx + vy * vy);
       this.isSettled = speed < SETTLED_VELOCITY_THRESHOLD;
+
+      // Squash on landing (settled transition false→true)
+      if (this.isSettled && !this.wasSettled && !this.landTweenDone) {
+        this.landTweenDone = true;
+        this.scene?.tweens?.add({
+          targets: this, scaleX: 1.2, scaleY: 0.8, duration: 80, ease: 'Power2',
+          onComplete: () => {
+            this.scene?.tweens?.add({
+              targets: this, scaleX: 1, scaleY: 1, duration: 150, ease: 'Back.easeOut',
+            });
+          },
+        });
+      }
+      this.wasSettled = this.isSettled;
     }
   }
 
