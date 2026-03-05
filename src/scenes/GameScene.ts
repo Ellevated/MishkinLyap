@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED, JUICE } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED, JUICE, ACHIEVEMENTS, FEVER } from '../config/GameConfig';
 import type { MysteryRewardType, GameMode } from '../config/GameConfig';
 import type { SeasonManager } from '../game/SeasonManager';
 import { EVENTS } from '../config/GameEvents';
@@ -25,7 +25,7 @@ import { AchievementManager } from '../game/AchievementManager';
 import { GameModeManager } from '../game/GameModeManager';
 import { MysteryRewardManager } from '../game/MysteryRewardManager';
 import { TutorialManager } from '../game/TutorialManager';
-import { ACHIEVEMENTS } from '../config/GameConfig';
+import { FeverManager } from '../game/FeverManager';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
 
@@ -43,6 +43,7 @@ export class GameScene extends Phaser.Scene {
   private modeManager!: GameModeManager;
   private mysteryRewards!: MysteryRewardManager;
   private tutorial!: TutorialManager;
+  private fever!: FeverManager;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -62,17 +63,12 @@ export class GameScene extends Phaser.Scene {
   private sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
 
   constructor() { super('Game'); }
-
   create(data?: { mode?: GameMode }): void {
     this.bridge = this.registry.get('bridge') as IPlatformBridge;
     const mode: GameMode = data?.mode || 'classic';
     this.modeManager = new GameModeManager(mode, this.bridge);
-    this.phase = 'playing';
-    this.gameOverTimer = 0;
-    this.displayedScore = 0;
-    this.continuesUsed = 0;
-    this.undosRemaining = UNDO.MAX_PER_GAME;
-    this.undoAvailable = false;
+    this.phase = 'playing'; this.gameOverTimer = 0; this.displayedScore = 0;
+    this.continuesUsed = 0; this.undosRemaining = UNDO.MAX_PER_GAME; this.undoAvailable = false;
     this.sessionStats = { mergeCount: 0, highestTier: 1, isNewRecord: false };
     this.cameras.main.setBackgroundColor(BRAND.BG_CREAM);
 
@@ -94,6 +90,7 @@ export class GameScene extends Phaser.Scene {
     this.achievements = new AchievementManager();
     this.mysteryRewards = new MysteryRewardManager();
     this.tutorial = new TutorialManager(this, this.score);
+    this.fever = new FeverManager(this, this.effects);
 
     // Adjust gravity for relaxation mode
     if (mode === 'relaxation') {
@@ -156,6 +153,7 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.phase !== 'playing') return;
     this.mysteryRewards.update(this.time.now);
+    this.combo.checkFeverExpiry(); if (!this.combo.isFever && this.fever.isActive()) this.fever.deactivateFever();
     this.tutorial.checkStuck(delta);
     this.checkGameOver(delta);
   }
@@ -189,6 +187,7 @@ export class GameScene extends Phaser.Scene {
     const multiplier = this.combo.getMultiplier();
     this.audio.playMerge(comboCount);
     if (result.newTier >= AUDIO_ENHANCED.REWARD_MIN_TIER) this.audio.playRewardChime();
+    if (this.combo.isFever && !this.fever.isActive()) this.fever.activateFever();
     this.effects.hitStop();
     if (result.newTier >= JUICE.SHAKE_MIN_TIER) this.effects.screenShake();
     this.updateComboUI(comboCount);
@@ -220,7 +219,7 @@ export class GameScene extends Phaser.Scene {
     // VFX
     this.effects.emitMergeParticles(mergeX, mergeY, comboCount);
     this.effects.emitFlash(mergeX, mergeY);
-    const totalMult = multiplier * boostMult * goldenMult * this.seasonMult;
+    const totalMult = multiplier * boostMult * goldenMult * this.seasonMult * this.combo.getFeverMultiplier();
     const finalScore = Math.round(result.scoreAwarded * totalMult);
     const label = totalMult > 1 ? `+${finalScore} x${Math.round(totalMult)}` : `+${finalScore}`;
     this.effects.emitFloatingScore(mergeX, mergeY, label);
@@ -384,7 +383,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown(): void {
-    this.audio?.destroy();
+    this.fever?.destroy(); this.audio?.destroy();
     this.tweens.killAll();
     this.time.removeAllEvents();
     this.matter?.world?.removeAllListeners();

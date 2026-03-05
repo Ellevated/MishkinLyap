@@ -106,6 +106,16 @@ export const JUICE = {
   TRAIL_ALPHA: 0.4,
 } as const;
 
+export const FEVER = {
+  THRESHOLD: 4,
+  DURATION_MS: 5000,
+  SCORE_MULTIPLIER: 1.5,
+  BG_TINT: 0xFFF3E0,
+  BG_ALPHA: 0.12,
+  PARTICLE_COUNT: 20,
+  PARTICLE_COLORS: [0xFFD700, 0xFF6347, 0xFF69B4],
+} as const;
+
 export const COMBO = {
   WINDOW_MS: 2000,
   MULTIPLIERS: [1, 1, 1.5, 2, 2.5, 3] as readonly number[],

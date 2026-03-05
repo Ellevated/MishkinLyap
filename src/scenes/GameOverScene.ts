@@ -59,7 +59,10 @@ export class GameOverScene extends Phaser.Scene {
     txt(this, w / 2, y, `Мерджей: ${data.mergeCount}  |  Лучший: ${tier}`, '16px', BRAND.TEXT_SECONDARY);
     y += 24;
 
-    if (data.highestTier < 8) {
+    if (data.highestTier >= 4) {
+      txt(this, w / 2, y, `Лучший момент: ${ANIMALS[data.highestTier - 1]?.name ?? '?'}!`, '16px', '#D4A24C');
+      y += 24;
+    } else if (data.highestTier < 8) {
       txt(this, w / 2, y, `До ${ANIMALS[data.highestTier]?.name ?? '?'} — совсем чуть-чуть!`, '16px', '#8B6040', BRAND.FONT_BODY, 'italic');
       y += 24;
     }

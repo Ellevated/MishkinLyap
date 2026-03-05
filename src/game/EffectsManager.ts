@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { BRAND, JUICE } from '../config/GameConfig';
+import { BRAND, JUICE, FEVER } from '../config/GameConfig';
 
 const TOASTS = {
   goodMerge: ['Ого!', 'Здорово!', 'Отлично!', 'Класс!'],
@@ -108,6 +108,21 @@ export class EffectsManager {
       emitter.stop();
       this.scene.time.delayedCall(JUICE.TRAIL_LIFESPAN + 50, () => emitter.destroy());
     });
+  }
+
+  /** Burst particles for fever activation */
+  emitFeverParticles(x: number, y: number): void {
+    if (!this.scene.textures.exists('fever_dot')) {
+      const g = this.scene.add.graphics();
+      g.fillStyle(0xffffff); g.fillCircle(4, 4, 4); g.generateTexture('fever_dot', 8, 8); g.destroy();
+    }
+    const em = this.scene.add.particles(x, y, 'fever_dot', {
+      speed: { min: 50, max: 150 }, angle: { min: 0, max: 360 },
+      scale: { start: 0.6, end: 0 }, lifespan: 800,
+      quantity: FEVER.PARTICLE_COUNT, tint: [...FEVER.PARTICLE_COLORS], emitting: false,
+    }).setDepth(99);
+    em.explode();
+    this.scene.time.delayedCall(1000, () => em.destroy());
   }
 
   private showToast(msg: string): void {
