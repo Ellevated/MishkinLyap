@@ -46,6 +46,9 @@ export class PreloadScene extends Phaser.Scene {
       label.destroy();
     });
 
+    // Load UI assets
+    this.load.image('mascot', 'assets/ui/mascot.png');
+
     // Load animal sprites
     for (const animal of ANIMALS) {
       this.load.image(

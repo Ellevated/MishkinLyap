@@ -152,6 +152,16 @@ export class GameScene extends Phaser.Scene {
       this.add.text(10, 10, mode === 'daily' ? 'Ежедневная' : 'Без стресса', { fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setDepth(10);
     }
 
+    // Exit button (top-left)
+    const exitBtn = this.add.text(30, 30, '←', {
+      fontSize: '32px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY,
+    }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+    exitBtn.on('pointerup', () => {
+      if (this.phase !== 'playing') return;
+      this.scene.pause();
+      this.scene.launch('Pause');
+    });
+
     this.updateNextPreview();
 
     // Undo button (hidden by default)
@@ -405,6 +415,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    if (this.scene.isActive('Pause')) this.scene.stop('Pause');
     this.fever?.destroy(); this.audio?.destroy();
     this.tweens.killAll();
     this.time.removeAllEvents();

@@ -55,9 +55,9 @@ export const GAME = {
   HEIGHT: 854,
   SPAWN_MAX_TIER: 5,
   DROP_COOLDOWN_MS: 500,
-  GAME_OVER_LINE_Y: 120,
+  GAME_OVER_LINE_Y: 160,
   CONTAINER_WALL_THICKNESS: 20,
-  CONTAINER_TOP_Y: 100,
+  CONTAINER_TOP_Y: 140,
 } as const;
 
 export type GameMode = 'classic' | 'daily' | 'relaxation';
