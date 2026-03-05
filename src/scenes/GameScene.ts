@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED, JUICE } from '../config/GameConfig';
 import type { MysteryRewardType, GameMode } from '../config/GameConfig';
 import type { SeasonManager } from '../game/SeasonManager';
 import { EVENTS } from '../config/GameEvents';
@@ -166,6 +166,8 @@ export class GameScene extends Phaser.Scene {
     this.inputHandler.disable();
     this.audio.playDrop();
     this.spawner.spawnAtDrop(data.x);
+    const dropped = this.spawner.peekLastSpawned();
+    if (dropped) this.effects.startTrail(dropped);
     this.tutorial.onDrop();
     this.updateNextPreview();
     this.dropCooldownTimer = this.time.delayedCall(GAME.DROP_COOLDOWN_MS, () => {
@@ -187,17 +189,15 @@ export class GameScene extends Phaser.Scene {
     const multiplier = this.combo.getMultiplier();
     this.audio.playMerge(comboCount);
     if (result.newTier >= AUDIO_ENHANCED.REWARD_MIN_TIER) this.audio.playRewardChime();
+    this.effects.hitStop();
+    if (result.newTier >= JUICE.SHAKE_MIN_TIER) this.effects.screenShake();
     this.updateComboUI(comboCount);
 
     this.tutorial.onMerge();
-    // Session stats + toasts
-    this.sessionStats.mergeCount++;
-    if (result.newTier > this.sessionStats.highestTier) this.sessionStats.highestTier = result.newTier;
+    this.sessionStats.mergeCount++; if (result.newTier > this.sessionStats.highestTier) this.sessionStats.highestTier = result.newTier;
     this.effects.triggerMergeToast(result.newTier, comboCount);
 
-    // Missions + achievements + discover
-    this.missionTracker.reportMerge(result.newTier);
-    if (comboCount >= 2) this.missionTracker.reportCombo(comboCount);
+    this.missionTracker.reportMerge(result.newTier); if (comboCount >= 2) this.missionTracker.reportCombo(comboCount);
     this.showAchievementToasts(this.achievements.reportMerge(result.newTier));
     if (comboCount >= 2) this.showAchievementToasts(this.achievements.reportCombo(comboCount));
     this.score.discoverTier(result.newTier);
@@ -229,6 +229,7 @@ export class GameScene extends Phaser.Scene {
     // Delayed new animal bounce-in
     this.time.delayedCall(120, () => {
       const newAnimal = this.spawner.spawnAtMerge(mergeX, mergeY, result.newTier);
+      if (result.newTier >= JUICE.GLOW_MIN_TIER) newAnimal.setGlow();
       this.score.addScore(finalScore);
       this.tweens.add({
         targets: newAnimal,

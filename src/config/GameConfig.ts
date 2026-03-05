@@ -91,6 +91,21 @@ export const AUDIO_ENHANCED = {
   REWARD_MIN_TIER: 4,
 } as const;
 
+export const JUICE = {
+  HIT_STOP_MS: 50,
+  SHAKE_DURATION: 150,
+  SHAKE_INTENSITY: 0.003,
+  SHAKE_MIN_TIER: 4,
+  GLOW_MIN_TIER: 5,
+  GLOW_COLOR: 0xFFD700,
+  GLOW_OUTER_STRENGTH: 4,
+  GLOW_PULSE_MAX: 6,
+  GLOW_PULSE_DURATION: 800,
+  TRAIL_LIFESPAN: 150,
+  TRAIL_FREQUENCY: 40,
+  TRAIL_ALPHA: 0.4,
+} as const;
+
 export const COMBO = {
   WINDOW_MS: 2000,
   MULTIPLIERS: [1, 1, 1.5, 2, 2.5, 3] as readonly number[],

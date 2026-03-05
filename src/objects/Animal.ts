@@ -7,7 +7,7 @@
  */
 
 import Phaser from 'phaser';
-import { ANIMALS, PHYSICS, BRAND } from '../config/GameConfig';
+import { ANIMALS, PHYSICS, BRAND, JUICE } from '../config/GameConfig';
 import type { AnimalConfig } from '../config/GameConfig';
 
 const SETTLED_VELOCITY_THRESHOLD = 0.3;
@@ -24,6 +24,7 @@ export class Animal extends Phaser.GameObjects.Container {
   private baseFactor = 1;
   private idleTween?: Phaser.Tweens.Tween;
   private swayTween?: Phaser.Tweens.Tween;
+  private glowFx: any = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, tier: number) {
     super(scene, x, y);
@@ -131,12 +132,23 @@ export class Animal extends Phaser.GameObjects.Container {
     if (this.sprite && this.active) { this.sprite.setScale(this.baseFactor); this.sprite.setAngle(0); }
   }
 
-  /**
-   * Override Container.destroy() — Phaser calls this directly during scene shutdown.
-   * Must nullify Matter.js body before super.destroy() because Container.destroy()
-   * tries to call body.destroy() which doesn't exist on raw Matter.js bodies.
-   */
+  setGlow(): void {
+    if (!this.sprite || this.glowFx) return;
+    this.glowFx = this.sprite.postFX?.addGlow(JUICE.GLOW_COLOR, JUICE.GLOW_OUTER_STRENGTH, 0, false, 0.1);
+    if (this.glowFx) {
+      this.scene.tweens.add({ targets: this.glowFx, outerStrength: JUICE.GLOW_PULSE_MAX, yoyo: true, loop: -1, ease: 'Sine.InOut', duration: JUICE.GLOW_PULSE_DURATION });
+    }
+  }
+
+  clearGlow(): void {
+    if (!this.glowFx || !this.sprite) return;
+    this.scene?.tweens?.killTweensOf(this.glowFx);
+    this.sprite.postFX?.remove(this.glowFx);
+    this.glowFx = null;
+  }
+
   destroy(fromScene?: boolean): void {
+    this.clearGlow();
     this.stopIdle();
     this.scene?.events?.off('update', this.syncPosition, this);
     (this as any).body = null;

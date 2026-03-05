@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { BRAND } from '../config/GameConfig';
+import { BRAND, JUICE } from '../config/GameConfig';
 
 const TOASTS = {
   goodMerge: ['Ого!', 'Здорово!', 'Отлично!', 'Класс!'],
@@ -77,6 +77,36 @@ export class EffectsManager {
     this.scene.tweens.add({
       targets: ft, y: y - 60, alpha: 0, duration: 800, ease: 'Power2',
       onComplete: () => ft.destroy(),
+    });
+  }
+
+  /** Freeze physics for hit-stop effect */
+  hitStop(): void {
+    const world = (this.scene as any).matter?.world;
+    if (!world) return;
+    world.pause();
+    this.scene.time.delayedCall(JUICE.HIT_STOP_MS, () => world.resume());
+  }
+
+  /** Gentle screen shake for impactful merges */
+  screenShake(): void {
+    this.scene.cameras.main.shake(JUICE.SHAKE_DURATION, JUICE.SHAKE_INTENSITY);
+  }
+
+  /** Trail particles following a dropped animal (auto-stops after 600ms) */
+  startTrail(target: Phaser.GameObjects.Container): void {
+    if (!this.scene.textures.exists('trail_dot')) {
+      const g = this.scene.add.graphics();
+      g.fillStyle(0xffffff); g.fillCircle(3, 3, 3); g.generateTexture('trail_dot', 6, 6); g.destroy();
+    }
+    const emitter = this.scene.add.particles(0, 0, 'trail_dot', {
+      follow: target, scale: { start: 0.5, end: 0 }, alpha: { start: JUICE.TRAIL_ALPHA, end: 0 },
+      lifespan: JUICE.TRAIL_LIFESPAN, frequency: JUICE.TRAIL_FREQUENCY, quantity: 1, tint: 0xD6C6A9,
+    });
+    emitter.setDepth((target.depth || 0) - 1);
+    this.scene.time.delayedCall(600, () => {
+      emitter.stop();
+      this.scene.time.delayedCall(JUICE.TRAIL_LIFESPAN + 50, () => emitter.destroy());
     });
   }
 
