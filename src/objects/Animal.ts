@@ -20,6 +20,10 @@ export class Animal extends Phaser.GameObjects.Container {
   public body!: MatterJS.BodyType;
   private wasSettled = false;
   private landTweenDone = false;
+  private sprite: Phaser.GameObjects.Image | null = null;
+  private baseFactor = 1;
+  private idleTween?: Phaser.Tweens.Tween;
+  private swayTween?: Phaser.Tweens.Tween;
 
   constructor(scene: Phaser.Scene, x: number, y: number, tier: number) {
     super(scene, x, y);
@@ -29,13 +33,11 @@ export class Animal extends Phaser.GameObjects.Container {
     const radius = this.config.radius;
     // Visual: sprite if loaded, fallback to colored circle
     if (scene.textures.exists(this.config.key)) {
-      const sprite = scene.add.image(0, 0, this.config.key);
-      // Scale proportionally to fit inside the physics circle diameter
-      const frame = sprite.frame;
-      const maxDim = Math.max(frame.width, frame.height);
-      const scaleFactor = (radius * 2) / maxDim;
-      sprite.setScale(scaleFactor);
-      this.add(sprite);
+      this.sprite = scene.add.image(0, 0, this.config.key);
+      const maxDim = Math.max(this.sprite.frame.width, this.sprite.frame.height);
+      this.baseFactor = (radius * 2) / maxDim;
+      this.sprite.setScale(this.baseFactor);
+      this.add(this.sprite);
     } else {
       const circle = scene.add.circle(0, 0, radius, this.config.color);
       circle.setStrokeStyle(2, 0x3d2b1f, 0.3);
@@ -100,8 +102,33 @@ export class Animal extends Phaser.GameObjects.Container {
           },
         });
       }
+      // Idle animations on settle/unsettle
+      if (this.isSettled && !this.wasSettled) {
+        this.scene?.time?.delayedCall(300, () => { if (this.isSettled && this.active) this.startIdle(); });
+      } else if (!this.isSettled && this.wasSettled) {
+        this.stopIdle();
+      }
       this.wasSettled = this.isSettled;
     }
+  }
+
+  private startIdle(): void {
+    if (!this.sprite || this.idleTween) return;
+    const s = this.sprite, bf = this.baseFactor;
+    this.idleTween = this.scene?.tweens?.add({
+      targets: s, scaleX: bf * 1.04, scaleY: bf * 0.97, duration: 1200 + Math.random() * 400,
+      yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+    this.swayTween = this.scene?.tweens?.add({
+      targets: s, angle: { from: -1.7, to: 1.7 }, duration: 2000 + Math.random() * 600,
+      yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+  }
+
+  private stopIdle(): void {
+    this.idleTween?.stop(); this.idleTween = undefined;
+    this.swayTween?.stop(); this.swayTween = undefined;
+    if (this.sprite && this.active) { this.sprite.setScale(this.baseFactor); this.sprite.setAngle(0); }
   }
 
   /**
@@ -110,6 +137,7 @@ export class Animal extends Phaser.GameObjects.Container {
    * tries to call body.destroy() which doesn't exist on raw Matter.js bodies.
    */
   destroy(fromScene?: boolean): void {
+    this.stopIdle();
     this.scene?.events?.off('update', this.syncPosition, this);
     (this as any).body = null;
     super.destroy(fromScene);
