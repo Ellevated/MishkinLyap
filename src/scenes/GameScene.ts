@@ -18,6 +18,7 @@ import { InputHandler } from '../game/InputHandler';
 import { AudioManager } from '../game/AudioManager';
 import { ComboTracker } from '../game/ComboTracker';
 import { EffectsManager } from '../game/EffectsManager';
+import { MissionTracker } from '../game/MissionTracker';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
 
@@ -30,6 +31,7 @@ export class GameScene extends Phaser.Scene {
   private audio!: AudioManager;
   private combo!: ComboTracker;
   private effects!: EffectsManager;
+  private missionTracker!: MissionTracker;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -63,6 +65,8 @@ export class GameScene extends Phaser.Scene {
     this.audio = new AudioManager();
     this.combo = new ComboTracker();
     this.effects = new EffectsManager(this, 75);
+    this.missionTracker = new MissionTracker();
+    this.missionTracker.loadOrReset();
 
     // Wire events
     this.events.on(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
@@ -137,7 +141,9 @@ export class GameScene extends Phaser.Scene {
     if (result.newTier > this.sessionStats.highestTier) this.sessionStats.highestTier = result.newTier;
     this.effects.triggerMergeToast(result.newTier, comboCount);
 
-    // Discover new tier
+    // Missions + discover
+    this.missionTracker.reportMerge(result.newTier);
+    if (comboCount >= 2) this.missionTracker.reportCombo(comboCount);
     this.score.discoverTier(result.newTier);
 
     // Squash old animals
@@ -231,6 +237,8 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.gameplayStop();
     const isNewRecord = this.score.checkAndSaveBest();
     if (isNewRecord) this.bridge?.saveHighScore(this.score.getBestScore());
+    this.missionTracker.reportScore(this.score.getScore());
+    this.missionTracker.reportGamePlayed();
     this.input.enabled = false;
     this.scene.launch('GameOver', {
       score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats,

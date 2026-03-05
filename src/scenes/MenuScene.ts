@@ -93,6 +93,18 @@ export class MenuScene extends Phaser.Scene {
     lbBtn.on('pointerout', () => lbBtn.setFillStyle(0xede0c4));
     lbBtn.on('pointerup', () => this.scene.start('Leaderboard', { returnTo: 'Menu' }));
 
+    // Missions button
+    const msBtnY = lbBtnY + 60;
+    const msBtn = this.add.rectangle(width / 2, msBtnY, 200, 52, 0xede0c4);
+    msBtn.setStrokeStyle(2, 0x8a6420);
+    msBtn.setInteractive({ useHandCursor: true });
+    this.add.text(width / 2, msBtnY, 'Задания', {
+      fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+    }).setOrigin(0.5);
+    msBtn.on('pointerover', () => msBtn.setFillStyle(0xe8c47a));
+    msBtn.on('pointerout', () => msBtn.setFillStyle(0xede0c4));
+    msBtn.on('pointerup', () => this.scene.start('Missions'));
+
     // Mute toggle
     const audio = new AudioManager();
     const muteBtn = this.add.text(width - 20, 20, audio.isMuted() ? '🔇' : '🔊', {

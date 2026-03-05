@@ -101,14 +101,59 @@ export const DEFAULT_STREAK: StreakData = {
   count: 0, lastPlayDate: '', shieldAvailable: true, lastShieldReset: '', todayClaimed: false,
 };
 
+export const MISSIONS = {
+  DAILY_COUNT: 3,
+  ALL_COMPLETE_BONUS: 1.5,
+} as const;
+
+export type MissionType = 'merges' | 'score' | 'games' | 'tier_created' | 'combo';
+
+export interface MissionTemplate {
+  readonly id: string;
+  readonly text: string;
+  readonly type: MissionType;
+  readonly target: number;
+}
+
+export const MISSION_POOL: readonly MissionTemplate[] = [
+  { id: 'merges_10',  text: 'Сделайте {target} мерджей',  type: 'merges',       target: 10 },
+  { id: 'merges_25',  text: 'Сделайте {target} мерджей',  type: 'merges',       target: 25 },
+  { id: 'score_3000', text: 'Наберите {target} очков',     type: 'score',        target: 3000 },
+  { id: 'score_8000', text: 'Наберите {target} очков',     type: 'score',        target: 8000 },
+  { id: 'games_3',    text: 'Сыграйте {target} раунда',   type: 'games',        target: 3 },
+  { id: 'games_5',    text: 'Сыграйте {target} раундов',  type: 'games',        target: 5 },
+  { id: 'tier_cat',   text: 'Создайте кота (тир 4)',      type: 'tier_created', target: 4 },
+  { id: 'tier_fox',   text: 'Создайте лису (тир 6)',      type: 'tier_created', target: 6 },
+  { id: 'combo_3',    text: 'Соберите комбо x{target}',   type: 'combo',        target: 3 },
+  { id: 'combo_5',    text: 'Соберите комбо x{target}',   type: 'combo',        target: 5 },
+] as const;
+
+export interface ActiveMission {
+  templateId: string;
+  progress: number;
+  completed: boolean;
+}
+
+export interface MissionSaveData {
+  date: string;
+  active: ActiveMission[];
+  allCompleted: boolean;
+}
+
+export const DEFAULT_MISSIONS: MissionSaveData = {
+  date: '', active: [], allCompleted: false,
+};
+
 export interface PersistedData {
   v: number;
   best: number;
   sound: boolean;
   discoveredTiers: number[];
   streak: StreakData;
+  missions: MissionSaveData;
 }
 
 export const DEFAULT_DATA: PersistedData = {
-  v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3], streak: { ...DEFAULT_STREAK },
+  v: 1, best: 0, sound: true, discoveredTiers: [1, 2, 3],
+  streak: { ...DEFAULT_STREAK }, missions: { ...DEFAULT_MISSIONS },
 };

@@ -13,6 +13,7 @@ import {
   STORAGE_VERSION,
   DEFAULT_DATA,
   DEFAULT_STREAK,
+  DEFAULT_MISSIONS,
 } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
@@ -83,12 +84,14 @@ export class ScoreManager {
           v: STORAGE_VERSION, best: parsed.best, sound: parsed.sound ?? true,
           discoveredTiers: parsed.discoveredTiers ?? [1, 2, 3],
           streak: parsed.streak ?? { ...DEFAULT_STREAK },
+          missions: parsed.missions ?? { ...DEFAULT_MISSIONS },
         };
       }
 
       // Patch: add missing fields from later features
       if (!Array.isArray(parsed.discoveredTiers)) parsed.discoveredTiers = [1, 2, 3];
       if (!parsed.streak) parsed.streak = { ...DEFAULT_STREAK };
+      if (!parsed.missions) parsed.missions = { ...DEFAULT_MISSIONS };
 
       return parsed as PersistedData;
     } catch {
