@@ -73,6 +73,12 @@ export const AUDIO = {
   SFX_VOLUME: 0.6,
 } as const;
 
+export const COMBO = {
+  WINDOW_MS: 2000,
+  MULTIPLIERS: [1, 1, 1.5, 2, 2.5, 3] as readonly number[],
+  MAX_DISPLAY: 5,
+} as const;
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
 

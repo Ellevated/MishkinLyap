@@ -18,6 +18,7 @@ import { AnimalSpawner } from '../game/AnimalSpawner';
 import { ScoreManager } from '../game/ScoreManager';
 import { InputHandler } from '../game/InputHandler';
 import { AudioManager } from '../game/AudioManager';
+import { ComboTracker } from '../game/ComboTracker';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
 
@@ -35,8 +36,9 @@ export class GameScene extends Phaser.Scene {
   private gameOverLine!: Phaser.GameObjects.Line;
   private dropCooldown = false;
   private gameOverTimer = 0;
-  private comboCount = 0;
-  private comboResetTimer?: Phaser.Time.TimerEvent;
+  private combo!: ComboTracker;
+  private comboText!: Phaser.GameObjects.Text;
+  private comboFadeTimer?: Phaser.Time.TimerEvent;
   private displayedScore = 0;
 
   constructor() {
@@ -57,6 +59,7 @@ export class GameScene extends Phaser.Scene {
     this.spawner = new AnimalSpawner(this, this.physicsManager);
     this.inputHandler = new InputHandler(this);
     this.audio = new AudioManager();
+    this.combo = new ComboTracker();
 
     // Wire events
     this.events.on(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
@@ -96,6 +99,13 @@ export class GameScene extends Phaser.Scene {
       fontFamily: BRAND.FONT_DISPLAY,
     }).setOrigin(0.5).setDepth(10);
 
+    // UI: combo counter (hidden by default)
+    this.comboText = this.add.text(GAME.WIDTH / 2 + 80, 30, '', {
+      fontSize: '32px',
+      color: '#D4A24C',
+      fontFamily: BRAND.FONT_DISPLAY,
+    }).setOrigin(0.5).setDepth(10).setAlpha(0);
+
     // UI: game over line
     this.gameOverLine = this.add.line(
       0, 0,
@@ -134,10 +144,10 @@ export class GameScene extends Phaser.Scene {
     const { mergeX, mergeY } = result;
 
     // Combo tracking + escalating pitch audio (A1)
-    this.comboCount++;
-    this.audio.playMerge(this.comboCount);
-    if (this.comboResetTimer) this.comboResetTimer.destroy();
-    this.comboResetTimer = this.time.delayedCall(1500, () => { this.comboCount = 0; });
+    const comboCount = this.combo.registerMerge();
+    const multiplier = this.combo.getMultiplier();
+    this.audio.playMerge(comboCount);
+    this.updateComboUI(comboCount);
 
     // Squash old animals before destroy
     this.tweens.add({
@@ -152,8 +162,8 @@ export class GameScene extends Phaser.Scene {
       },
     });
 
-    // Burst particles at merge point
-    this.emitMergeParticles(mergeX, mergeY);
+    // Burst particles at merge point (escalate by combo)
+    this.emitMergeParticles(mergeX, mergeY, comboCount);
 
     // White flash on merge
     const flash = this.add.circle(mergeX, mergeY, 20, 0xffffff, 0.8).setDepth(15);
@@ -162,8 +172,10 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => flash.destroy(),
     });
 
-    // Floating score number at merge point
-    const floatText = this.add.text(mergeX, mergeY, `+${result.scoreAwarded}`, {
+    // Floating score number at merge point (with multiplier)
+    const finalScore = Math.round(result.scoreAwarded * multiplier);
+    const label = multiplier > 1 ? `+${finalScore} x${multiplier}` : `+${finalScore}`;
+    const floatText = this.add.text(mergeX, mergeY, label, {
       fontSize: '24px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
       stroke: '#3D2B1F', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(15);
@@ -175,7 +187,7 @@ export class GameScene extends Phaser.Scene {
     // Delayed new animal bounce-in
     this.time.delayedCall(120, () => {
       const newAnimal = this.spawner.spawnAtMerge(mergeX, mergeY, result.newTier);
-      this.score.addScore(result.scoreAwarded);
+      this.score.addScore(finalScore);
 
       this.tweens.add({
         targets: newAnimal,
@@ -196,13 +208,16 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  /** Organic merge particles — leaves, flowers, hearts in brand colors */
-  private emitMergeParticles(x: number, y: number): void {
-    const colors = [0x5a8c3c, 0xd4a24c, 0xc44832]; // forest, ochre, red
-    const count = 7;
+  /** Organic merge particles — escalate by combo level */
+  private emitMergeParticles(x: number, y: number, combo = 1): void {
+    const colors = combo >= 4
+      ? [0xd4a24c, 0xf0b832, 0xe8c47a] // gold sparkles for high combo
+      : [0x5a8c3c, 0xd4a24c, 0xc44832]; // forest, ochre, red
+    const count = Math.min(7 + (combo - 1) * 3, 18);
     for (let i = 0; i < count; i++) {
       const color = colors[i % colors.length];
-      const particle = this.add.circle(x, y, Phaser.Math.Between(3, 6), color);
+      const baseSize = Math.min(3 + combo, 8);
+      const particle = this.add.circle(x, y, Phaser.Math.Between(baseSize - 1, baseSize + 2), color);
       const angle = (Math.PI * 2 / count) * i;
       const dist = Phaser.Math.Between(30, 60);
       this.tweens.add({
@@ -243,6 +258,31 @@ export class GameScene extends Phaser.Scene {
       this.scoreText.setColor('#D4A24C');
       this.time.delayedCall(200, () => this.scoreText.setColor(BRAND.TEXT_INK));
     }
+  }
+
+  private updateComboUI(count: number): void {
+    if (count < 2) {
+      this.comboText.setAlpha(0);
+      return;
+    }
+    // Show combo text with color escalation
+    const colors = ['#D4A24C', '#E88C28', '#C44832', '#C03228'];
+    const colorIdx = Math.min(count - 2, colors.length - 1);
+    this.comboText.setText(`x${Math.min(count, 5)}${count > 5 ? '+' : ''}`);
+    this.comboText.setColor(colors[colorIdx]);
+    this.comboText.setAlpha(1);
+    // Scale pulse
+    this.tweens.add({
+      targets: this.comboText,
+      scaleX: 1.3, scaleY: 1.3, duration: 80, yoyo: true, ease: 'Power2',
+    });
+    // Fade out after combo window
+    if (this.comboFadeTimer) this.comboFadeTimer.destroy();
+    this.comboFadeTimer = this.time.delayedCall(2200, () => {
+      this.tweens.add({
+        targets: this.comboText, alpha: 0, duration: 300,
+      });
+    });
   }
 
   private checkGameOver(delta: number): void {
