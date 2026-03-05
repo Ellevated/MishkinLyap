@@ -26,6 +26,7 @@ import { GameModeManager } from '../game/GameModeManager';
 import { MysteryRewardManager } from '../game/MysteryRewardManager';
 import { TutorialManager } from '../game/TutorialManager';
 import { FeverManager } from '../game/FeverManager';
+import { SkinManager } from '../game/SkinManager';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
 
@@ -52,7 +53,7 @@ export class GameScene extends Phaser.Scene {
   private comboFadeTimer?: Phaser.Time.TimerEvent;
   private dropCooldown = false;
   private dropCooldownTimer?: Phaser.Time.TimerEvent;
-  private gameOverTimer = 0; private musicUpdateTimer = 0;
+  private gameOverTimer = 0; private musicUpdateTimer = 0; private skinTint = 0;
   private displayedScore = 0;
   private continuesUsed = 0;
   private undosRemaining = 0;
@@ -91,6 +92,7 @@ export class GameScene extends Phaser.Scene {
     this.mysteryRewards = new MysteryRewardManager();
     this.tutorial = new TutorialManager(this, this.score);
     this.fever = new FeverManager(this, this.effects);
+    this.skinTint = new SkinManager().getActiveTint();
 
     // Adjust gravity for relaxation mode
     if (mode === 'relaxation') {
@@ -166,7 +168,7 @@ export class GameScene extends Phaser.Scene {
     this.audio.playDrop();
     this.spawner.spawnAtDrop(data.x);
     const dropped = this.spawner.peekLastSpawned();
-    if (dropped) this.effects.startTrail(dropped);
+    if (dropped) { this.effects.startTrail(dropped); if (this.skinTint) dropped.setSkinTint(this.skinTint); }
     this.tutorial.onDrop();
     this.updateNextPreview();
     this.dropCooldownTimer = this.time.delayedCall(GAME.DROP_COOLDOWN_MS, () => {
@@ -229,7 +231,7 @@ export class GameScene extends Phaser.Scene {
     // Delayed new animal bounce-in
     this.time.delayedCall(120, () => {
       const newAnimal = this.spawner.spawnAtMerge(mergeX, mergeY, result.newTier);
-      if (result.newTier >= JUICE.GLOW_MIN_TIER) newAnimal.setGlow();
+      if (result.newTier >= JUICE.GLOW_MIN_TIER) newAnimal.setGlow(); if (this.skinTint) newAnimal.setSkinTint(this.skinTint);
       this.score.addScore(finalScore);
       this.tweens.add({
         targets: newAnimal,
@@ -296,11 +298,7 @@ export class GameScene extends Phaser.Scene {
     this.missionTracker.reportGamePlayed();
     this.showAchievementToasts(this.achievements.reportGameEnd(this.score.getScore()));
     this.input.enabled = false;
-    this.scene.launch('GameOver', {
-      score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats,
-      canContinue: this.continuesUsed < ADS.MAX_CONTINUES_PER_GAME,
-      mode,
-    });
+    this.scene.launch('GameOver', { score: this.score.getScore(), best: this.score.getBestScore(), ...this.sessionStats, canContinue: this.continuesUsed < ADS.MAX_CONTINUES_PER_GAME, mode });
     this.scene.pause();
   }
 

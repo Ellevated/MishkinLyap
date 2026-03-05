@@ -155,6 +155,9 @@ export class Animal extends Phaser.GameObjects.Container {
     super.destroy(fromScene);
   }
 
+  setSkinTint(tint: number): void { if (tint && this.sprite) this.sprite.setTint(tint); }
+  clearSkinTint(): void { this.sprite?.clearTint(); }
+
   /** Pulse highlight to suggest merge possibility */
   showMergeHint(): void {
     this.scene?.tweens?.add({ targets: this, alpha: 0.5, duration: 300, yoyo: true, repeat: 2 });

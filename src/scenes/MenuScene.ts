@@ -14,6 +14,7 @@ import { ScoreManager } from '../game/ScoreManager';
 import { AudioManager } from '../game/AudioManager';
 import { DailyStreakManager } from '../game/DailyStreakManager';
 import { SpinRewardManager } from '../game/SpinRewardManager';
+import { SkinManager } from '../game/SkinManager';
 import type { SeasonManager } from '../game/SeasonManager';
 
 const btn = (s: Phaser.Scene, x: number, y: number, w: number, h: number, color: number, label: string, onClick: () => void) => {
@@ -107,6 +108,12 @@ export class MenuScene extends Phaser.Scene {
     const spinBtn = btn(this, w / 2, y, 200, 44, 0xede0c4, spinAvail ? 'Колесо ✨' : 'Колесо', () => this.scene.start('LuckySpin'));
     if (spinAvail) this.tweens.add({ targets: spinBtn, scaleX: 1.03, scaleY: 1.03, duration: 600, yoyo: true, repeat: -1 });
 
+    // Skin picker (small circle next to mute)
+    const skinMgr = new SkinManager();
+    const skinCircle = this.add.circle(w - 60, 36, 16, skinMgr.getActiveTint() || 0xF5EDD8)
+      .setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
+    skinCircle.on('pointerup', () => this.showSkinPicker(w, h));
+
     // Mute toggle
     const audio = new AudioManager();
     const muteBtn = this.add.text(w - 20, 20, audio.isMuted() ? '🔇' : '🔊', {
@@ -147,6 +154,23 @@ export class MenuScene extends Phaser.Scene {
   private loadPersisted(): PersistedData {
     try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch { /* ok */ }
     return { ...DEFAULT_DATA };
+  }
+
+  private showSkinPicker(w: number, h: number): void {
+    const skinMgr = new SkinManager(); const all = skinMgr.getAllSkins();
+    const overlay = this.add.rectangle(w / 2, h / 2, w, h, 0x3d2b1f, 0.5).setInteractive().setDepth(20);
+    const py = h * 0.4;
+    this.add.rectangle(w / 2, py, 300, 180, 0xf0e5ca).setStrokeStyle(3, 0xd6c6a9).setDepth(21);
+    this.add.text(w / 2, py - 60, 'Шкурки', { fontSize: '24px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(21);
+    const sx = w / 2 - (all.length - 1) * 25;
+    all.forEach((skin, i) => {
+      const cx = sx + i * 50;
+      const c = this.add.circle(cx, py - 10, 18, skin.tint || 0xF5EDD8).setStrokeStyle(3, skin.id === skinMgr.getActiveSkin().id ? 0x3D2B1F : 0xD6C6A9).setDepth(21);
+      if (!skin.unlocked) { c.setAlpha(0.3); this.add.text(cx, py - 10, '🔒', { fontSize: '14px' }).setOrigin(0.5).setDepth(21); }
+      else { c.setInteractive({ useHandCursor: true }); c.on('pointerup', () => { skinMgr.setActiveSkin(skin.id); this.scene.restart(); }); }
+    });
+    this.add.text(w / 2, py + 25, skinMgr.getActiveSkin().name, { fontSize: '16px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setOrigin(0.5).setDepth(21);
+    overlay.on('pointerup', () => this.scene.restart());
   }
 
   private showStreakPopup(

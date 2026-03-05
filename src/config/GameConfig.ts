@@ -178,6 +178,18 @@ export const DEFAULT_SPIN: SpinData = {
   lastSpinDate: '', adSpinsToday: 0, pendingBonus: null,
 };
 
+export interface SkinDef { id: string; name: string; tint: number; unlockLabel: string; unlockCheck: (s: { bestScore: number; totalGames: number; totalMerges: number; highestTier: number }) => boolean; }
+export const SKINS: SkinDef[] = [
+  { id: 'default', name: 'Обычные', tint: 0, unlockLabel: 'Всегда', unlockCheck: () => true },
+  { id: 'golden', name: 'Золотые', tint: 0xFFD700, unlockLabel: '10000 очков', unlockCheck: s => s.bestScore >= 10000 },
+  { id: 'rosy', name: 'Розовые', tint: 0xFFB6C1, unlockLabel: '50 мерджей', unlockCheck: s => s.totalMerges >= 50 },
+  { id: 'arctic', name: 'Ледяные', tint: 0x87CEEB, unlockLabel: '100 игр', unlockCheck: s => s.totalGames >= 100 },
+  { id: 'shadow', name: 'Тёмные', tint: 0x696969, unlockLabel: 'Медведь', unlockCheck: s => s.highestTier >= 8 },
+];
+
+export interface SkinData { unlockedSkins: string[]; activeSkin: string; }
+export const DEFAULT_SKIN: SkinData = { unlockedSkins: ['default'], activeSkin: 'default' };
+
 export const STATS_DISPLAY = {
   SHOW_CHALLENGE_MIN_GAMES: 3,
   SHOW_INVESTMENT_MIN_GAMES: 5,
@@ -335,6 +347,7 @@ export interface PersistedData {
   dailyChallenge: DailyChallengeData;
   tutorialDone: boolean;
   spinData: SpinData;
+  skinData: SkinData;
 }
 
 export const DEFAULT_DATA: PersistedData = {
@@ -343,4 +356,5 @@ export const DEFAULT_DATA: PersistedData = {
   career: { ...DEFAULT_CAREER }, unlockedAchievements: [],
   dailyChallenge: { ...DEFAULT_DAILY }, tutorialDone: false,
   spinData: { ...DEFAULT_SPIN },
+  skinData: { ...DEFAULT_SKIN },
 };

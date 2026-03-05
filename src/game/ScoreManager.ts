@@ -17,6 +17,7 @@ import {
   DEFAULT_CAREER,
   DEFAULT_DAILY,
   DEFAULT_SPIN,
+  DEFAULT_SKIN,
 } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
@@ -93,6 +94,7 @@ export class ScoreManager {
           dailyChallenge: parsed.dailyChallenge ?? { ...DEFAULT_DAILY },
           tutorialDone: parsed.tutorialDone ?? false,
           spinData: parsed.spinData ?? { ...DEFAULT_SPIN },
+          skinData: parsed.skinData ?? { ...DEFAULT_SKIN },
         };
       }
 
@@ -105,6 +107,7 @@ export class ScoreManager {
       if (!parsed.dailyChallenge) parsed.dailyChallenge = { ...DEFAULT_DAILY };
       if (parsed.tutorialDone === undefined) parsed.tutorialDone = false;
       if (!parsed.spinData) parsed.spinData = { ...DEFAULT_SPIN };
+      if (!parsed.skinData) parsed.skinData = { ...DEFAULT_SKIN };
 
       return parsed as PersistedData;
     } catch {
