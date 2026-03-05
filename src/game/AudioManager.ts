@@ -1,5 +1,5 @@
 /** AudioManager — procedural audio with pitch variation, ducking, danger tone, adaptive music */
-import { AUDIO, AUDIO_ENHANCED, STORAGE_KEY, DEFAULT_DATA } from '../config/GameConfig';
+import { AUDIO, AUDIO_ENHANCED, MUSIC, STORAGE_KEY, DEFAULT_DATA } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 
 type MusicState = 'calm' | 'tense' | 'combo';
@@ -7,11 +7,12 @@ type MusicState = 'calm' | 'tense' | 'combo';
 export class AudioManager {
   private muted: boolean;
   private ctx: AudioContext | null = null; private bgmGain: GainNode | null = null;
-  private bgmOscs: OscillatorNode[] = []; private bgmPlaying = false;
+  private bgmPlaying = false;
   private dangerOsc: OscillatorNode | null = null; private dangerGain: GainNode | null = null;
   private dangerLfo: OscillatorNode | null = null; private isDangerActive = false;
-  private musicState: MusicState = 'calm'; private oscGains: GainNode[] = []; private lfoNodes: OscillatorNode[] = [];
-  private comboOsc: OscillatorNode | null = null; private comboGain: GainNode | null = null;
+  private musicState: MusicState = 'calm';
+  private melodyReverb: ConvolverNode | null = null;
+  private melodyIdx = 0; private schedTimer = 0; private nextNoteTime = 0; private currentBpm = 72;
 
   constructor() { this.muted = this.loadMuteState(); }
 
@@ -90,29 +91,30 @@ export class AudioManager {
   startMusic(): void {
     if (this.muted || this.bgmPlaying) return;
     const ctx = this.getCtx(); if (!ctx) return;
-    this.bgmPlaying = true; this.musicState = 'calm'; this.oscGains = []; this.lfoNodes = [];
-    this.bgmGain = ctx.createGain(); this.bgmGain.gain.value = AUDIO.BGM_VOLUME * 0.3; this.bgmGain.connect(ctx.destination);
-    [130.8, 146.8, 164.8, 196.0, 220.0].forEach((freq, i) => {
-      const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq;
-      const g = ctx.createGain(); g.gain.value = i < 3 ? 0.06 : 0; this.oscGains.push(g);
-      const lfo = ctx.createOscillator(); lfo.frequency.value = 0.3 + i * 0.05; this.lfoNodes.push(lfo);
-      const lg = ctx.createGain(); lg.gain.value = 0.03;
-      lfo.connect(lg).connect(g.gain); lfo.start();
-      osc.connect(g).connect(this.bgmGain!); osc.start();
-      this.bgmOscs.push(osc, lfo);
-    });
+    this.bgmPlaying = true; this.musicState = 'calm'; this.melodyIdx = 0;
+    const sp = MUSIC.STATES[this.musicState];
+    this.currentBpm = sp.bpm;
+    this.bgmGain = ctx.createGain(); this.bgmGain.gain.value = sp.gain; this.bgmGain.connect(ctx.destination);
+    this.melodyReverb = this.createReverb(ctx);
+    this.melodyReverb.connect(this.bgmGain);
+    this.nextNoteTime = ctx.currentTime; this.scheduleMelody();
   }
 
   stopMusic(): void {
-    this.bgmPlaying = false; this.removeComboOsc(0);
-    for (const o of this.bgmOscs) { try { o.stop(); } catch { /* ok */ } }
-    this.bgmOscs = []; this.oscGains = []; this.lfoNodes = [];
+    this.bgmPlaying = false;
+    if (this.schedTimer) { clearTimeout(this.schedTimer); this.schedTimer = 0; }
+    this.melodyReverb?.disconnect(); this.melodyReverb = null;
     this.bgmGain?.disconnect(); this.bgmGain = null;
   }
 
   setMusicState(s: MusicState): void {
     if (s === this.musicState || !this.ctx || this.muted) return;
-    this.musicState = s; this.applyMusicState(s);
+    this.musicState = s;
+    const sp = MUSIC.STATES[s];
+    this.currentBpm = sp.bpm;
+    if (this.bgmGain && this.ctx) {
+      this.bgmGain.gain.linearRampToValueAtTime(sp.gain, this.ctx.currentTime + 0.8);
+    }
   }
 
   getMusicState(): MusicState { return this.musicState; }
@@ -126,30 +128,61 @@ export class AudioManager {
 
   isMuted(): boolean { return this.muted; }
 
-  destroy(): void { this.stopDangerTone(); this.removeComboOsc(0); this.stopMusic(); this.ctx?.close(); this.ctx = null; }
+  destroy(): void { this.stopDangerTone(); this.stopMusic(); this.ctx?.close(); this.ctx = null; }
 
-  private applyMusicState(s: MusicState): void {
-    if (!this.ctx) return; const now = this.ctx.currentTime, rt = 0.8;
-    const p = { calm: [0.3, 3, 0.25], tense: [0.8, 4, 0.30], combo: [1.5, 5, 0.35] }[s] as [number, number, number];
-    this.lfoNodes.forEach((lfo, i) => lfo.frequency.linearRampToValueAtTime(p[0] + i * 0.05, now + rt));
-    this.oscGains.forEach((g, i) => g.gain.linearRampToValueAtTime(i < p[1] ? p[2] / p[1] : 0, now + rt));
-    if (s === 'combo') this.addComboOsc(rt); else this.removeComboOsc(rt);
+  private createReverb(ctx: AudioContext): ConvolverNode {
+    const convolver = ctx.createConvolver();
+    const rate = ctx.sampleRate, len = rate * MUSIC.REVERB_DURATION;
+    const buf = ctx.createBuffer(2, len, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, MUSIC.REVERB_DECAY);
+    }
+    convolver.buffer = buf;
+    return convolver;
   }
 
-  private addComboOsc(ramp: number): void {
-    if (this.comboOsc || !this.ctx) return;
-    this.comboOsc = this.ctx.createOscillator(); this.comboGain = this.ctx.createGain();
-    this.comboOsc.type = 'triangle'; this.comboOsc.frequency.setValueAtTime(330, this.ctx.currentTime);
-    this.comboGain.gain.setValueAtTime(0, this.ctx.currentTime);
-    this.comboGain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + ramp);
-    this.comboOsc.connect(this.comboGain).connect(this.bgmGain!); this.comboOsc.start();
+  private playMelodyNote(freq: number, startTime: number, durSec: number): void {
+    if (!this.ctx || !this.melodyReverb) return;
+    const ctx = this.ctx;
+    const osc = ctx.createOscillator(); osc.type = 'triangle'; osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, startTime);
+    g.gain.linearRampToValueAtTime(1, startTime + MUSIC.ATTACK);
+    g.gain.exponentialRampToValueAtTime(0.001, startTime + durSec * MUSIC.DECAY_FACTOR);
+    osc.connect(g).connect(this.melodyReverb!);
+    osc.start(startTime); osc.stop(startTime + durSec);
+    // Detuned sine overtone for warmth
+    const ov = ctx.createOscillator(); ov.type = 'sine'; ov.frequency.value = freq; ov.detune.value = MUSIC.OVERTONE_DETUNE;
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.001, startTime);
+    og.gain.linearRampToValueAtTime(MUSIC.OVERTONE_GAIN_MULT, startTime + MUSIC.ATTACK);
+    og.gain.exponentialRampToValueAtTime(0.001, startTime + durSec * MUSIC.DECAY_FACTOR);
+    ov.connect(og).connect(this.melodyReverb!);
+    ov.start(startTime); ov.stop(startTime + durSec);
+    // Harmony (perfect 5th) in combo state
+    if (MUSIC.STATES[this.musicState].harmony) {
+      const ho = ctx.createOscillator(); ho.type = 'triangle'; ho.frequency.value = freq * MUSIC.HARMONY_RATIO;
+      const hg = ctx.createGain();
+      hg.gain.setValueAtTime(0.001, startTime);
+      hg.gain.linearRampToValueAtTime(MUSIC.HARMONY_GAIN_MULT, startTime + MUSIC.ATTACK);
+      hg.gain.exponentialRampToValueAtTime(0.001, startTime + durSec * MUSIC.DECAY_FACTOR);
+      ho.connect(hg).connect(this.melodyReverb!);
+      ho.start(startTime); ho.stop(startTime + durSec);
+    }
   }
 
-  private removeComboOsc(ramp: number): void {
-    if (!this.comboOsc || !this.comboGain || !this.ctx) return;
-    this.comboGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + ramp);
-    const o = this.comboOsc, g = this.comboGain; this.comboOsc = null; this.comboGain = null;
-    setTimeout(() => { try { o.stop(); o.disconnect(); g.disconnect(); } catch { /* ok */ } }, ramp * 1000 + 100);
+  private scheduleMelody(): void {
+    if (!this.bgmPlaying || !this.ctx) return;
+    const ctx = this.ctx;
+    while (this.nextNoteTime < ctx.currentTime + MUSIC.SCHEDULE_AHEAD) {
+      const [freq, beats] = MUSIC.MELODY[this.melodyIdx % MUSIC.MELODY.length];
+      const durSec = (60 / this.currentBpm) * beats;
+      if (freq > 0) this.playMelodyNote(freq, this.nextNoteTime, durSec);
+      this.nextNoteTime += durSec;
+      this.melodyIdx++;
+    }
+    this.schedTimer = window.setTimeout(() => this.scheduleMelody(), MUSIC.SCHEDULE_INTERVAL);
   }
 
   private guardCtx(): AudioContext | null {
@@ -163,7 +196,10 @@ export class AudioManager {
     if (!this.bgmGain || !this.ctx) return;
     this.bgmGain.gain.linearRampToValueAtTime(AUDIO_ENHANCED.MUSIC_DUCK_VOLUME, this.ctx.currentTime + AUDIO_ENHANCED.MUSIC_DUCK_RAMP);
     setTimeout(() => {
-      if (this.bgmGain && this.ctx) this.bgmGain.gain.linearRampToValueAtTime(AUDIO.BGM_VOLUME * 0.3, this.ctx.currentTime + 0.1);
+      if (this.bgmGain && this.ctx) {
+        const targetGain = MUSIC.STATES[this.musicState].gain;
+        this.bgmGain.gain.linearRampToValueAtTime(targetGain, this.ctx.currentTime + 0.1);
+      }
     }, 200);
   }
 

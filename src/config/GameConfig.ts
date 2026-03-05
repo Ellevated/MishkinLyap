@@ -111,6 +111,31 @@ export const VISUAL = {
   SPRITE_OVERFLOW: 1.25,
 } as const;
 
+/** F-major pentatonic melody for BGM. Each entry: [frequency_Hz, duration_in_beats] */
+export const MUSIC = {
+  MELODY: [
+    [349, 1], [392, 1], [440, 2], [349, 1], [523, 1], [440, 2],
+    [587, 1], [523, 1], [440, 1], [392, 1], [349, 2], [0, 2],
+    [440, 1], [523, 1], [587, 2], [523, 1], [440, 1], [392, 2],
+    [349, 1], [440, 1], [523, 1], [392, 1], [349, 2], [0, 2],
+  ] as readonly (readonly [number, number])[],
+  STATES: {
+    calm:  { bpm: 72,  gain: 0.06, harmony: false },
+    tense: { bpm: 108, gain: 0.09, harmony: false },
+    combo: { bpm: 132, gain: 0.10, harmony: true },
+  } as const,
+  ATTACK: 0.005,
+  DECAY_FACTOR: 0.6,
+  REVERB_DURATION: 1.5,
+  REVERB_DECAY: 2.0,
+  SCHEDULE_AHEAD: 0.1,
+  SCHEDULE_INTERVAL: 25,
+  HARMONY_RATIO: 1.5,
+  HARMONY_GAIN_MULT: 0.4,
+  OVERTONE_DETUNE: 7,
+  OVERTONE_GAIN_MULT: 0.3,
+} as const;
+
 export const FEVER = {
   THRESHOLD: 4,
   DURATION_MS: 5000,
