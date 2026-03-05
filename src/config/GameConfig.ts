@@ -107,6 +107,41 @@ export const MYSTERY = {
   SCORE_SHOWER_BONUS: 100,
 } as const;
 
+export type SpinRewardType = 'score_bonus' | 'score_multiplier' | 'extra_spin';
+
+export interface SpinReward {
+  type: SpinRewardType;
+  value: number;
+  label: string;
+  color: number;
+  weight: number;
+}
+
+export const SPIN = {
+  SEGMENTS: [
+    { type: 'score_bonus', value: 100, label: '+100', color: 0xEDE0C4, weight: 35 },
+    { type: 'score_multiplier', value: 2, label: '×2', color: 0xD4A24C, weight: 25 },
+    { type: 'score_bonus', value: 500, label: '+500', color: 0xE8D5A3, weight: 20 },
+    { type: 'extra_spin', value: 0, label: 'Ещё!', color: 0x4A7A30, weight: 10 },
+    { type: 'score_bonus', value: 1000, label: '+1000', color: 0xFFD700, weight: 7 },
+    { type: 'score_multiplier', value: 3, label: '×3!', color: 0xC44832, weight: 3 },
+  ] as readonly SpinReward[],
+  SPIN_DURATION_MS: 4000,
+  MIN_ROTATIONS: 5,
+  MAX_ROTATIONS: 8,
+  MAX_AD_SPINS_PER_DAY: 2,
+} as const;
+
+export interface SpinData {
+  lastSpinDate: string;
+  adSpinsToday: number;
+  pendingBonus: { type: 'score_bonus' | 'score_multiplier'; value: number } | null;
+}
+
+export const DEFAULT_SPIN: SpinData = {
+  lastSpinDate: '', adSpinsToday: 0, pendingBonus: null,
+};
+
 export const TUTORIAL = {
   STEPS: [
     { id: 'tap_to_drop', hint: 'Нажмите, чтобы бросить зверька!' },
@@ -233,6 +268,7 @@ export interface PersistedData {
   unlockedAchievements: string[];
   dailyChallenge: DailyChallengeData;
   tutorialDone: boolean;
+  spinData: SpinData;
 }
 
 export const DEFAULT_DATA: PersistedData = {
@@ -240,4 +276,5 @@ export const DEFAULT_DATA: PersistedData = {
   streak: { ...DEFAULT_STREAK }, missions: { ...DEFAULT_MISSIONS },
   career: { ...DEFAULT_CAREER }, unlockedAchievements: [],
   dailyChallenge: { ...DEFAULT_DAILY }, tutorialDone: false,
+  spinData: { ...DEFAULT_SPIN },
 };

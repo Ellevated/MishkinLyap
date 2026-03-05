@@ -13,6 +13,7 @@ import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { ScoreManager } from '../game/ScoreManager';
 import { AudioManager } from '../game/AudioManager';
 import { DailyStreakManager } from '../game/DailyStreakManager';
+import { SpinRewardManager } from '../game/SpinRewardManager';
 
 const btn = (s: Phaser.Scene, x: number, y: number, w: number, h: number, color: number, label: string, onClick: () => void) => {
   const r = s.add.rectangle(x, y, w, h, color).setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
@@ -71,6 +72,11 @@ export class MenuScene extends Phaser.Scene {
     btn(this, w / 2, y, 200, 44, 0xede0c4, 'Задания', () => this.scene.start('Missions'));
     y += 52;
     btn(this, w / 2, y, 200, 44, 0xede0c4, 'Награды', () => this.scene.start('Achievements'));
+    y += 52;
+    const spinMgr = new SpinRewardManager();
+    const spinAvail = spinMgr.canFreeSpin() || spinMgr.canAdSpin();
+    const spinBtn = btn(this, w / 2, y, 200, 44, 0xede0c4, spinAvail ? 'Колесо ✨' : 'Колесо', () => this.scene.start('LuckySpin'));
+    if (spinAvail) this.tweens.add({ targets: spinBtn, scaleX: 1.03, scaleY: 1.03, duration: 600, yoyo: true, repeat: -1 });
 
     // Mute toggle
     const audio = new AudioManager();

@@ -16,6 +16,7 @@ import {
   DEFAULT_MISSIONS,
   DEFAULT_CAREER,
   DEFAULT_DAILY,
+  DEFAULT_SPIN,
 } from '../config/GameConfig';
 import type { PersistedData } from '../config/GameConfig';
 import { EVENTS } from '../config/GameEvents';
@@ -91,6 +92,7 @@ export class ScoreManager {
           unlockedAchievements: parsed.unlockedAchievements ?? [],
           dailyChallenge: parsed.dailyChallenge ?? { ...DEFAULT_DAILY },
           tutorialDone: parsed.tutorialDone ?? false,
+          spinData: parsed.spinData ?? { ...DEFAULT_SPIN },
         };
       }
 
@@ -102,6 +104,7 @@ export class ScoreManager {
       if (!Array.isArray(parsed.unlockedAchievements)) parsed.unlockedAchievements = [];
       if (!parsed.dailyChallenge) parsed.dailyChallenge = { ...DEFAULT_DAILY };
       if (parsed.tutorialDone === undefined) parsed.tutorialDone = false;
+      if (!parsed.spinData) parsed.spinData = { ...DEFAULT_SPIN };
 
       return parsed as PersistedData;
     } catch {

@@ -8,6 +8,7 @@
 
 import Phaser from 'phaser';
 import { ANIMALS, BRAND } from '../config/GameConfig';
+import { LuckySpinScene } from './LuckySpinScene';
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -53,6 +54,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.scene.add('LuckySpin', LuckySpinScene, false);
     this.scene.start('Menu');
   }
 }
