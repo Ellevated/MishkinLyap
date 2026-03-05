@@ -7,8 +7,8 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND } from '../config/GameConfig';
-import type { GameMode } from '../config/GameConfig';
+import { GAME, BRAND, STORAGE_KEY, DEFAULT_DATA, STATS_DISPLAY } from '../config/GameConfig';
+import type { GameMode, PersistedData } from '../config/GameConfig';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { ScoreManager } from '../game/ScoreManager';
 import { AudioManager } from '../game/AudioManager';
@@ -58,13 +58,24 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(0.5);
     }
 
-    // Best score
+    // Best score + challenge
     const scoreManager = new ScoreManager(this);
     const best = scoreManager.getBestScore();
-    if (best > 0) {
+    const persisted = this.loadPersisted();
+    const career = persisted.career;
+    if (career.gamesPlayed >= STATS_DISPLAY.SHOW_CHALLENGE_MIN_GAMES && best > 0) {
+      this.add.text(w / 2, h * 0.35, `Побейте рекорд: ${best.toLocaleString()}!`, {
+        fontSize: '22px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(0.5);
+    } else if (best > 0) {
       this.add.text(w / 2, h * 0.35, `Рекорд: ${best}`, {
         fontSize: '22px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
       }).setOrigin(0.5);
+    }
+    if (career.gamesPlayed >= STATS_DISPLAY.SHOW_INVESTMENT_MIN_GAMES) {
+      this.add.text(w / 2, h * 0.39, `${career.gamesPlayed} игр · ${career.totalMerges} мерджей`, {
+        fontSize: '13px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+      }).setOrigin(0.5).setAlpha(0.7);
     }
 
     // Mode buttons
@@ -131,6 +142,11 @@ export class MenuScene extends Phaser.Scene {
   private getTodayString(): string {
     const d = new Date(this.bridge?.getServerTime?.() ?? Date.now());
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  private loadPersisted(): PersistedData {
+    try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch { /* ok */ }
+    return { ...DEFAULT_DATA };
   }
 
   private showStreakPopup(

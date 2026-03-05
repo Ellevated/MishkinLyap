@@ -178,6 +178,12 @@ export const DEFAULT_SPIN: SpinData = {
   lastSpinDate: '', adSpinsToday: 0, pendingBonus: null,
 };
 
+export const STATS_DISPLAY = {
+  SHOW_CHALLENGE_MIN_GAMES: 3,
+  SHOW_INVESTMENT_MIN_GAMES: 5,
+  GOAL_GRADIENT_THRESHOLD: 0.6,
+} as const;
+
 export const TUTORIAL = {
   STEPS: [
     { id: 'tap_to_drop', hint: 'Нажмите, чтобы бросить зверька!' },

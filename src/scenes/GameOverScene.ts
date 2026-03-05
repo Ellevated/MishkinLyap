@@ -5,8 +5,8 @@
  * Used by: GameScene (launches as overlay)
  */
 import Phaser from 'phaser';
-import { BRAND, ANIMALS, ADS } from '../config/GameConfig';
-import type { GameMode } from '../config/GameConfig';
+import { BRAND, ANIMALS, ADS, STORAGE_KEY, DEFAULT_DATA, STATS_DISPLAY } from '../config/GameConfig';
+import type { GameMode, PersistedData } from '../config/GameConfig';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import type { GameScene } from './GameScene';
 import { ShareManager } from '../game/ShareManager';
@@ -67,6 +67,17 @@ export class GameOverScene extends Phaser.Scene {
       y += 24;
     }
 
+    // Collection progress + milestone
+    const pd = this.loadPersisted();
+    const disc = pd.discoveredTiers, total = ANIMALS.length;
+    if (disc.length > 0 && disc.length < total) {
+      const pct = disc.length / total;
+      const next = ANIMALS.find((_, i) => !disc.includes(i + 1));
+      txt(this, w / 2, y, pct >= STATS_DISPLAY.GOAL_GRADIENT_THRESHOLD ? `Коллекция: ${disc.length}/${total} — почти все!` : `Коллекция: ${disc.length}/${total} · ${next?.name ?? ''}`, '14px', pct >= 0.6 ? '#D4A24C' : BRAND.TEXT_SECONDARY);
+      y += 24;
+    }
+    if ([10, 50, 100].includes(pd.career.gamesPlayed)) { txt(this, w / 2, y, `${pd.career.gamesPlayed}-я игра!`, '14px', '#D4A24C'); y += 24; }
+
     txt(this, w / 2, y, pick(WARM), '18px', '#4A7A30');
     y += 38;
 
@@ -108,6 +119,11 @@ export class GameOverScene extends Phaser.Scene {
       try { await bridge.showInterstitial(); this.registry.set('lastInterstitialTime', Date.now()); } catch { /* ok */ }
     }
     this.scene.stop(); this.scene.stop('Game'); this.scene.start('Game', { mode });
+  }
+
+  private loadPersisted(): PersistedData {
+    try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch { /* ok */ }
+    return { ...DEFAULT_DATA };
   }
 
   private btn(x: number, y: number, label: string, color: number, onClick: () => void): Phaser.GameObjects.Rectangle {
