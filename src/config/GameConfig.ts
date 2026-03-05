@@ -65,6 +65,14 @@ export const ADS = {
   AD_TIMEOUT_MS: 10_000,
 } as const;
 
+export const AUDIO = {
+  PITCH_VARIATION: 0.05,
+  COMBO_PITCH_STEP: 0.06,
+  MAX_PITCH_RATE: 2.0,
+  BGM_VOLUME: 0.3,
+  SFX_VOLUME: 0.6,
+} as const;
+
 export const STORAGE_KEY = 'mishkin_lyap_v1';
 export const STORAGE_VERSION = 1;
 

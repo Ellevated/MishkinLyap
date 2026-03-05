@@ -17,6 +17,7 @@ import type { MergeResult } from '../game/MergeDetector';
 import { AnimalSpawner } from '../game/AnimalSpawner';
 import { ScoreManager } from '../game/ScoreManager';
 import { InputHandler } from '../game/InputHandler';
+import { AudioManager } from '../game/AudioManager';
 
 type GamePhase = 'playing' | 'frozen' | 'game-over';
 
@@ -26,6 +27,7 @@ export class GameScene extends Phaser.Scene {
   private spawner!: AnimalSpawner;
   private score!: ScoreManager;
   private inputHandler!: InputHandler;
+  private audio!: AudioManager;
   private bridge!: IPlatformBridge;
   private phase: GamePhase = 'playing';
   private scoreText!: Phaser.GameObjects.Text;
@@ -33,6 +35,8 @@ export class GameScene extends Phaser.Scene {
   private gameOverLine!: Phaser.GameObjects.Line;
   private dropCooldown = false;
   private gameOverTimer = 0;
+  private comboCount = 0;
+  private comboResetTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
     super('Game');
@@ -51,6 +55,7 @@ export class GameScene extends Phaser.Scene {
     this.score = new ScoreManager(this);
     this.spawner = new AnimalSpawner(this, this.physicsManager);
     this.inputHandler = new InputHandler(this);
+    this.audio = new AudioManager();
 
     // Wire events
     this.events.on(EVENTS.DROP_REQUESTED, this.onDropRequested, this);
@@ -59,6 +64,7 @@ export class GameScene extends Phaser.Scene {
 
     this.merge.enable();
     this.inputHandler.enable();
+    this.audio.startMusic();
     this.bridge?.gameplayStart();
 
     // Wire shutdown to Phaser lifecycle for proper cleanup on restart
@@ -111,6 +117,7 @@ export class GameScene extends Phaser.Scene {
 
     this.dropCooldown = true;
     this.inputHandler.disable();
+    this.audio.playDrop();
     this.spawner.spawnAtDrop(data.x);
     this.updateNextPreview();
 
@@ -124,6 +131,12 @@ export class GameScene extends Phaser.Scene {
 
   private onMerge(result: MergeResult): void {
     const { mergeX, mergeY } = result;
+
+    // Combo tracking + escalating pitch audio (A1)
+    this.comboCount++;
+    this.audio.playMerge(this.comboCount);
+    if (this.comboResetTimer) this.comboResetTimer.destroy();
+    this.comboResetTimer = this.time.delayedCall(1500, () => { this.comboCount = 0; });
 
     // Squash old animals before destroy
     this.tweens.add({
@@ -221,6 +234,8 @@ export class GameScene extends Phaser.Scene {
     this.phase = 'game-over';
     this.inputHandler.disable();
     this.merge.disable();
+    this.audio.playGameOver();
+    this.audio.stopMusic();
     this.bridge?.gameplayStop();
     this.score.checkAndSaveBest();
 
@@ -255,6 +270,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   shutdown(): void {
+    this.audio?.destroy();
     this.tweens.killAll();
     this.time.removeAllEvents();
     this.events.off(EVENTS.DROP_REQUESTED, this.onDropRequested, this);

@@ -10,6 +10,7 @@ import Phaser from 'phaser';
 import { GAME, BRAND } from '../config/GameConfig';
 import type { IPlatformBridge } from '../sdk/IGamePlatform';
 import { ScoreManager } from '../game/ScoreManager';
+import { AudioManager } from '../game/AudioManager';
 
 export class MenuScene extends Phaser.Scene {
   private bridge!: IPlatformBridge;
@@ -65,6 +66,17 @@ export class MenuScene extends Phaser.Scene {
     btn.on('pointerup', () => {
       btn.setScale(1);
       this.scene.start('Game');
+    });
+
+    // Mute toggle
+    const audio = new AudioManager();
+    const muteBtn = this.add.text(width - 20, 20, audio.isMuted() ? '🔇' : '🔊', {
+      fontSize: '32px',
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+
+    muteBtn.on('pointerup', () => {
+      const muted = audio.toggleMute();
+      muteBtn.setText(muted ? '🔇' : '🔊');
     });
 
     // Show banner
