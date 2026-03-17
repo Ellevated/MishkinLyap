@@ -153,9 +153,13 @@ Glossary: ai/glossary/{domain}.md
 | **reflect** | Synthesize diary + upstream signals into rules |
 | **scout** | Isolated research via Exa + Context7 |
 | **release** | Update CHANGELOG, README, docs after changes (fully automatic) |
-| **skill-writer** | Create agents/skills or optimize CLAUDE.md, rules, prompts |
+| **skill-creator** | Create agents/skills or optimize CLAUDE.md, rules, prompts |
 | **retrofit** | Brownfield lifecycle — reassess existing projects (audit -> architect -> board -> stabilize) |
+| **brandbook** | Brand identity system — anti-convergence, design tokens, coder handoff |
 | **diagram** | Generate professional Excalidraw diagrams from description or code analysis |
+| **eval** | Agent prompt eval suite — golden datasets + LLM-as-Judge scoring |
+| **upgrade** | Upgrade DLD framework from latest GitHub template |
+| **qa** | Manual QA tester — tests product behavior like a real user, not code |
 
 ### Skill Auto-Selection
 
@@ -183,6 +187,8 @@ Claude auto-selects skills based on user intent. Each skill has semantic trigger
 | "reflect", "what did we learn" | reflect |
 | "diagram", "draw", "visualize architecture" | diagram |
 | "retrofit", "brownfield", "reassess project" | retrofit |
+| "upgrade DLD", "update framework", "обнови DLD" | upgrade |
+| "протестируй", "проверь как работает", "QA", "потыкай" | qa |
 
 **Flows:**
 ```
@@ -205,6 +211,49 @@ Brownfield:   /retrofit → /audit deep → /architect → /board → stabilize 
 
 ---
 
+## AI-First Economic Model
+
+This project is maintained by AI agents. All cost/effort assessments MUST reflect compute reality, not human-team estimates.
+
+### Cost Reference
+
+| Change Size | Time | Cost | Example |
+|-------------|------|------|---------|
+| Simple (1-3 files) | 15 min | ~$1 | Fix typo, add field, update config |
+| Medium (5-10 files) | 1-2 hours | ~$5 | New endpoint, refactor module |
+| Large (20+ files) | 3-4 hours | ~$15 | Cross-domain change, new feature |
+| Domain extraction | 1 day | ~$50 | Split monolith, new bounded context |
+
+### Priority = Impact, NOT Effort
+
+```
+P0 = Blocks revenue, users, or security RIGHT NOW (Cost of Delay: immediate)
+P1 = High impact on product quality, including refactoring and testing (Cost of Delay: this week)
+P2 = Nice-to-have, doesn't affect metrics this week (Cost of Delay: low)
+```
+
+**Rule:** Implementation cost ($1-50) is NEVER a factor in priority. Priority = pure Impact / Cost of Delay.
+**Rule:** Refactoring and testing = P1 by default. Never deprioritize because "effort is high" — effort is always low in AI-first.
+**Rule:** Max 5 P0 tasks in backlog simultaneously (priority inflation gate).
+
+### Risk Classification
+
+```
+R0 = Irreversible: data loss, schema migration, security exposure, public API break
+R1 = High blast radius: 3+ files, cross-domain, external dependency, state machine change
+R2 = Contained: 1-2 files, single domain, internal, trivially rollbackable
+```
+
+### Routing Matrix (Impact x Risk)
+
+| Impact \ Risk | R0 (Irreversible) | R1 (Blast radius) | R2 (Contained) |
+|---|---|---|---|
+| P0 | COUNCIL | HUMAN | AUTO |
+| P1 | COUNCIL | AUTO | AUTO |
+| P2 | HUMAN | AUTO | AUTO |
+
+---
+
 ## Key Rules
 
 ### Imports Direction
@@ -217,6 +266,7 @@ Brownfield:   /retrofit → /audit deep → /architect → /board → stabilize 
 ### Test Safety
 - NEVER modify `tests/contracts/` or `tests/regression/`
 - Never delete/skip tests without user approval
+- Integration tests (`tests/integration/`) use real dependencies — NO mocks (hook enforced)
 
 ### Atomic Commits
 One task = one commit. Tests must pass.
@@ -233,6 +283,12 @@ When user says "commit/push" — execute without asking:
 ### Migrations — Git-First ONLY
 **NEVER apply migrations directly! CI is the only source of apply.**
 
+### Shell Scripts (scripts/vps/)
+- Header: `#!/usr/bin/env bash` + `set -euo pipefail`
+- SQL: ALWAYS through `python3 db.py <command>`, never shell interpolation
+- Variables: quote all `"$var"`, no bare `$var`
+- CLI flags: verify flag exists in tool version before using
+
 ### Tool Preferences (API Error Prevention)
 Some tools may trigger API content filtering errors. Use fallbacks:
 - **File search:** Use `Glob` instead of `Search` for pattern matching
@@ -243,18 +299,67 @@ If a tool returns "content filtering policy" error — retry with alternative to
 
 ---
 
+## AI-First Economic Model
+
+Implementation effort is near-zero for AI agents. **Never deprioritize a task based on implementation effort.**
+
+### Cost Reference
+
+| Scope | Compute cost | Wall-clock |
+|-------|-------------|------------|
+| Simple change (1-3 files) | ~$1 | 15 min |
+| Medium change (5-10 files) | ~$5 | 1-2 hours |
+| Large change (20+ files) | ~$15 | 3-4 hours |
+| Full domain extraction | ~$50 | 1 day |
+
+**Capacity:** 5 parallel autopilot slots. No "team is busy" — slots are always available.
+
+### Priority = Pure Impact (Cost of Delay)
+
+| Priority | Definition | Cost of Delay |
+|----------|-----------|---------------|
+| **P0** | Blocks revenue, users, or security RIGHT NOW | Immediate |
+| **P1** | High impact on product quality (features, refactoring, testing, tech debt) | This week |
+| **P2** | Nice-to-have, doesn't affect metrics this week | Low |
+
+**Key rules:**
+- Refactoring and testing are **P1 by default** — they cost $5-10 and maintain the harness
+- Maximum 5 P0 tasks in backlog simultaneously (priority inflation gate)
+- "Too expensive" means risk, not compute cost
+
+### Risk Classification (R0/R1/R2)
+
+Risk replaces effort as the second axis of decision-making:
+
+| Risk | Definition | Examples |
+|------|-----------|----------|
+| **R0** | Irreversible | Data loss, schema migration, security exposure, public API break |
+| **R1** | High blast radius | 3+ files, cross-domain, external dependency, state machine change |
+| **R2** | Contained | 1-2 files, single domain, internal, trivially rollbackable |
+
+### Impact x Risk Routing
+
+| Impact \ Risk | R0 (Irreversible) | R1 (Blast radius) | R2 (Contained) |
+|---|---|---|---|
+| **P0** | COUNCIL | HUMAN | AUTO |
+| **P1** | COUNCIL | AUTO | AUTO |
+| **P2** | HUMAN | AUTO | AUTO |
+
+---
+
 ## Task Statuses
 
 | Status | Owner | Description |
 |--------|-------|-------------|
-| `draft` | Spark | Spec incomplete |
-| `queued` | Spark | Ready for autopilot |
+| `draft` | Manual | Spec incomplete (manual override only, not normal Spark output) |
+| `queued` | Spark | Ready for autopilot (Spark always creates specs in this status) |
 | `in_progress` | Autopilot | Currently executing |
 | `blocked` | Autopilot | Needs human (see ACTION REQUIRED in spec) |
 | `resumed` | Human | Problem resolved, continue |
 | `done` | Autopilot | Completed |
 
-**Flow:** `draft → queued → in_progress → done`
+**Default Flow:** `queued → in_progress → done`
+**Manual Override Flow:** `draft → queued → in_progress → done`
 **Recovery:** `in_progress → blocked → resumed → in_progress`
 
 ---

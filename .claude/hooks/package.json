@@ -1,8 +1,0 @@
-{
-  "name": "dld-hooks-tests",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "node --test __tests__/*.test.mjs"
-  }
-}

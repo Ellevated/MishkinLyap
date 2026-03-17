@@ -40,7 +40,27 @@ Transforms raw ideas into specs via 4 parallel scouts + research + structured di
 
 **See CLAUDE.md#Task-Statuses** for canonical status definitions.
 
-**Key point:** Spark owns `queued` status. Plan subagent adds tasks but doesn't change status.
+**Key point:** Spark creates specs directly in `queued` status when intake is already complete.
+There is no approval gate between Spark and Autopilot in the orchestrator north-star flow.
+
+---
+
+## Headless Mode
+
+When running from orchestrator (automated pipeline), Spark detects headless context:
+
+**Detection:** prompt contains `[headless]` marker OR `Source: council|qa|architect|bughunt|reflect`
+
+**Behavior in headless mode:**
+- DO NOT ask Socratic clarifying questions — all information is already in the prompt
+- If `Context:` field present — READ the linked document for full context before designing
+- If data is insufficient — make a reasonable decision independently or escalate via `/council`
+- PRESERVE ability to invoke council, scout, and other skills when genuinely needed
+- Create spec in `queued` status (orchestrator picks it up on next cycle)
+
+**Behavior in interactive mode (default):**
+- Normal Socratic dialogue, questions, user interaction
+- Create spec in `queued` status (orchestrator picks it up on next cycle)
 
 ---
 
@@ -52,9 +72,9 @@ Spark operates in three modes:
 |---------|------|-----------|
 | "new feature", "add", "want", "create feature", "create spec", "write specification", "make feature" | **Feature Mode** | `feature-mode.md` |
 | "bug", "error", "crashes", "doesn't work" (simple, <5 files) | **Quick Bug Mode** | `bug-mode.md` |
-| "bug hunt", "deep analysis", complex bug (>5 files), explicit request | **Bug Hunt Mode** | `bug-mode.md` |
+| "bug hunt", "deep analysis", complex bug (>5 files), explicit request | **→ /bughunt** | Redirect to standalone skill |
 
-**Bug mode selection:** Start with Quick. Escalate to Bug Hunt if 5 Whys reveals systemic issues or >5 files affected.
+**Bug mode selection:** Start with Quick Bug. If 5 Whys reveals systemic issues → redirect to `/bughunt` standalone skill.
 
 ## Modules
 
@@ -132,3 +152,17 @@ Quick checklist before creating spec:
 ## Output
 
 See `completion.md` for output format and handoff rules.
+
+---
+
+## Notification Output Format
+
+Your final JSON `result_preview` is sent to the user via Telegram. Keep it concise:
+
+```
+{1-2 sentence description of what the spec proposes}
+Задач: {N}
+```
+
+**BAD:** "Все 4 скаута завершились. Спека обновлена с учётом рекомендаций..."
+**GOOD:** "Кнопки управления кампаниями: отмена, пауза, удаление по статусу. Задач: 3"
