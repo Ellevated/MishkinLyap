@@ -42,10 +42,9 @@ PHASE 2: Execute (per task)    → task-loop.md
   └─ [Spec Reviewer] sonnet → approved?
   └─ [Code Quality] opus → approved?
   └─ COMMIT (no push)
-  └─ LOCAL VERIFY (if AV section) → warn only
 
 PHASE 3: Finish                → finishing.md
-  └─ Final test → Exa verification → status done → push feature → POST-DEPLOY VERIFY → merge develop → push develop → cleanup
+  └─ Final test → Exa verification → status done → push feature → merge develop → push develop → cleanup
 ```
 
 **Limits & Escalation:** See `escalation.md`
@@ -117,7 +116,6 @@ For EACH task from plan:
 │ 4. SPEC REVIEWER (Stage 1) → matches spec?          │
 │ 5. CODE QUALITY (Stage 2) → architecture ok?        │
 │ 6. COMMIT (NO PUSH yet!)                            │
-│ 7. LOCAL VERIFY → smoke + functional (warn only)    │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -244,20 +242,5 @@ See: `./scripts/autopilot-loop.sh`
 ## References
 
 - Agent roles: `.claude/agents/*.md`
-- Creating skills: `/skill-creator create` skill
+- Creating skills: `/skill-writer create` skill
 - Smart Testing: `.claude/agents/tester.md`
-
----
-
-## Notification Output Format
-
-Your final JSON `result_preview` is sent to the user via Telegram. Keep it concise and actionable:
-
-```
-Что сделано: {1-2 sentence summary of actual changes}
-Файлы: {N} изменено
-Spec: {SPEC_ID} → done
-```
-
-**BAD:** "Все функциональные чекбоксы в Definition of Done отмечены как выполненные..."
-**GOOD:** "Добавлены кнопки отменить/пауза для кампаний. Файлы: 3 изменено. FTR-0063 → done"

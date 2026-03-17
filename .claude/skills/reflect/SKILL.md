@@ -17,7 +17,7 @@ Analyzes diary entries AND upstream signals, creates spec with proposals for CLA
 | Action | Triggers | What happens |
 |--------|----------|--------------|
 | **Diary entry** | "write to diary", "save to diary", "remember for diary" | New line in index.md + file |
-| **Synthesis (this skill)** | "/reflect", "reflection", "let's analyze the diary" | Analysis -> spec -> skill-creator |
+| **Synthesis (this skill)** | "/reflect", "reflection", "let's analyze the diary" | Analysis -> spec -> skill-writer |
 
 ---
 
@@ -36,10 +36,11 @@ Analyzes diary entries AND upstream signals, creates spec with proposals for CLA
 
 ### Step 1: Read Diary Index
 
-Read `ai/diary/index.md` — find all entries with `pending` status.
+```bash
+cat ai/diary/index.md
+```
 
-**Deduplication:** If `ai/diary/.processed.log` exists, skip entries already listed there.
-This prevents re-processing entries from previous reflect sessions.
+Find all entries with `pending` status.
 
 ### Step 1.5: Read Upstream Signals (v2, NEW)
 
@@ -103,59 +104,72 @@ Compare entries with CLAUDE.md:
 - Rule helped? -> Keep
 - Rule outdated? -> Update or remove
 
-### Step 5: Write durable reflect artifacts (NOT inbox)
+### Step 5: Create Spec (NOT direct edits!)
 
-**CRITICAL:** Reflect does NOT create TECH specs and does NOT write to inbox.
-It writes durable findings to its own reflect artifacts and diary context.
-OpenClaw reviews those artifacts later and decides whether to create an inbox item.
+**CRITICAL:** Never edit CLAUDE.md directly! Create spec.
 
-**Location:** `ai/reflect/findings-{date}.md` (single file per session, not one per pattern)
+**Location:** `ai/features/TECH-NNN-YYYY-MM-DD-reflect-synthesis.md`
 
 **Format:**
+
 ```markdown
-# Reflect Findings — {date}
+# TECH-NNN: Reflect Diary Synthesis — [Month Year]
 
-## {Pattern Name}
-**Frequency:** {N} occurrences. **Evidence:** {task_ids}.
-**Type:** {user_preference | failure_pattern | design_decision | tool_workflow}
-**Proposed action:** {what should change}
+**Status:** queued | **Priority:** P2 | **Date:** YYYY-MM-DD
 
----
+## Context
+- Entries analyzed: [list from index.md]
+- Period: [date range]
+
+## Findings
+
+### Patterns Found (threshold 2+ = MUST add)
+| Pattern | Frequency | Source | Action |
+
+### Anti-Patterns Found
+| Anti-Pattern | Frequency | Source | Action |
+
+### User Preferences Found
+| Preference | Frequency | Source | Action |
+
+## Proposed Changes
+
+### 1. CLAUDE.md — [Section]
+**Pattern:** {what we found in diary}
+**Frequency:** {N occurrences}
+**Exa Research:** {what external sources say}
+**Source:** {URL}
+**Add/Update:**
+```markdown
+[exact content to add]
 ```
 
-**Rules:**
-- Only patterns with frequency >= 3 are included
-- Patterns with frequency 2 are noted in diary but NOT included in findings file
-- Max 5 findings per reflect session (prioritize by frequency)
-- All findings for a session go into a single file (not one per pattern)
-- No `Route: spark` — OpenClaw decides next steps from reflect findings
+## Allowed Files
+| File | Change Type |
+|------|-------------|
+| `CLAUDE.md` | Update |
+| `.claude/rules/*.md` | Update (if needed) |
 
-### Step 5.5: Commit + Push
+## Definition of Done
+- [ ] `skill-writer` applied changes
+- [ ] CLAUDE.md < 200 lines after changes
+- [ ] Diary entries marked as done in index.md
 
+## Integration
+
+**What `/skill-writer` does with reflect output:**
+1. Reads the reflect spec (proposed changes)
+2. Applies changes to CLAUDE.md and .claude/rules/
+3. Validates CLAUDE.md stays under 200 lines
+4. Creates a commit with the integrated changes
+
+**Next step:** Run `/skill-writer` with this spec as input.
+
+## After Integration
+Update diary entries status in index.md:
 ```bash
-git add ai/diary/ ai/reflect/ 2>/dev/null
-git diff --cached --quiet || git commit -m "docs: reflect synthesis + findings"
-git push origin develop 2>/dev/null || true
+# For each processed entry, change status from pending to done
 ```
-
-### Step 5.6: Mark Diary Entries as Done
-
-**CRITICAL:** Update diary index.md — change status from `pending` to `done` for ALL analyzed entries.
-This prevents the orchestrator from re-dispatching reflect on every cycle.
-
-```bash
-# For each processed TASK_ID:
-sed -i "s/| ${TASK_ID} |\\(.*\\)| pending |/| ${TASK_ID} |\\1| done |/" ai/diary/index.md
-```
-
-Also maintain dedup log and timestamp:
-1. Append processed entry IDs to dedup log:
-```bash
-echo "{TASK_ID}" >> ai/diary/.processed.log
-```
-2. Update timestamp:
-```bash
-date +%s > ai/diary/.last_reflect
 ```
 
 ### Step 6: Output
@@ -163,10 +177,10 @@ date +%s > ai/diary/.last_reflect
 ```yaml
 entries_analyzed: N
 patterns_found:
-  - "Pattern 1 (frequency: N)"
-  - "Pattern 2 (frequency: N)"
-findings_written: M
-next_action: "Findings saved to ai/reflect/findings-{date}.md — OpenClaw decides next step"
+  - "Pattern 1"
+  - "Pattern 2"
+spec_created: ai/features/TECH-NNN-....md
+next_action: "Run /skill-writer — it will apply proposed changes to CLAUDE.md and rules"
 ```
 
 ---
@@ -175,11 +189,21 @@ next_action: "Findings saved to ai/reflect/findings-{date}.md — OpenClaw decid
 
 | Wrong | Correct |
 |-------|---------|
-| Create TECH spec directly | Write to ai/reflect/ -> OpenClaw decides next step |
-| Edit CLAUDE.md directly | Write to ai/reflect/ -> OpenClaw -> Spark -> skill-creator |
-| Skip marking entries done | MUST mark diary entries `pending → done` in Step 5.6 |
-| Write all patterns to ai/reflect/ | Only frequency >= 3, max 5 findings |
-| Write findings directly into inbox | Only OpenClaw writes to inbox |
+| Edit CLAUDE.md directly | Create spec -> skill-writer |
+| Edit .claude/rules directly | Create spec -> skill-writer |
+| Mark entries done before integration | Mark after skill-writer |
+
+---
+
+## After skill-writer
+
+1. Open `ai/diary/index.md`
+2. For each processed entry change status: `pending` -> `done`
+3. Update timestamp:
+
+```bash
+date +%s > ai/diary/.last_reflect
+```
 
 ---
 
@@ -190,21 +214,6 @@ Before completing reflect:
 - [ ] All pending entries analyzed
 - [ ] Exa research performed for patterns with frequency >= 2
 - [ ] Patterns counted correctly (frequency threshold)
-- [ ] Findings written to ai/reflect/ (not inbox, not direct spec/edits)
-- [ ] Commit + push performed
-- [ ] Processed entries appended to .processed.log
-
----
-
-## Notification Output Format
-
-Your final JSON `result_preview` is sent to the user via Telegram. Keep it concise:
-
-```
-Записей: {N} обработано
-Паттернов: {M} найдено, {K} → ai/reflect/
-{If K > 0: one-line top pattern}
-```
-
-**BAD:** "entries_analyzed: 5, patterns_found: [...], findings_written: 2, next_action: ..."
-**GOOD:** "Записей: 5 обработано. Паттернов: 3 найдено, 2 → ai/reflect/. Топ: мок в интеграционных тестах (×4)"
+- [ ] Spec created (not direct edits)
+- [ ] Spec contains "Proposed Changes" section with Exa sources
+- [ ] Next action = "run skill-writer"

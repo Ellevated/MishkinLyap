@@ -2,32 +2,36 @@
 
 When user triggers a skill in native language, invoke the corresponding slash command.
 
-## Russian (ru)
+<!--
+HOW TO USE:
+1. Copy this file to your .claude/rules/ folder
+2. Replace [Your Language] with your language name (e.g., "Russian (ru)", "French (fr)")
+3. Add trigger words in your language for each skill
+4. Delete this comment block
+5. Optional: Add more languages by duplicating the section
+-->
+
+## Spanish (es)
 
 | Trigger | Skill |
 |---------|-------|
-| "спарк", "запусти спарк", "искра" | `/spark` |
-| "автопилот", "запусти автопилот" | `/autopilot` |
-| "совет директоров", "бизнес-стратегия", "борд" | `/board` |
-| "архитектор", "спроектируй систему", "системная архитектура" | `/architect` |
-| "консилиум", "созови консилиум" | `/council` |
-| "аудит", "проверь код" | `/audit` |
-| "скаут", "разведка", "исследуй" | `/scout` |
-| "рефлект", "рефлексия" | `/reflect` |
-| "тестер", "запусти тесты" | `/tester` |
-| "кодер" | `/coder` |
-| "планнер", "план" | `/planner` |
-| "ревью", "проверь" | `/review` |
-| "брендбук", "бренд", "фирменный стиль" | `/brandbook` |
-| "баг-хант", "командный аудит", "охота на баги" | `/spark` |
-| "релиз", "подготовь релиз", "обнови доки" | `/release` |
-| "триз", "здоровье системы", "где ограничение?", "системная диагностика" | `/triz` |
-| "диаграмма", "нарисуй схему", "схема" | `/diagram` |
-| "ретрофит", "браунфилд", "переоценка проекта" | `/retrofit` |
-| "глубокий аудит", "полный аудит", "аудит deep" | `/audit deep` |
-| "оценка агентов", "эвал", "проверь агентов" | `/eval` |
-| "обнови DLD", "апгрейд", "обнови скиллы", "обнови фреймворк" | `/upgrade` |
-| "протестируй", "потыкай", "проверь как работает", "QA", "ручное тестирование" | `/qa` |
+| "chispa", "crear especificación" | `/spark` |
+| "piloto automático", "ejecutar" | `/autopilot` |
+| "junta directiva", "estrategia de negocio" | `/board` |
+| "arquitecto", "diseñar sistema" | `/architect` |
+| "consejo", "debate" | `/council` |
+| "auditoría", "revisar código" | `/audit` |
+| "explorador", "investigar" | `/scout` |
+| "reflexionar" | `/reflect` |
+| "probador", "ejecutar pruebas" | `/tester` |
+| "codificador" | `/coder` |
+| "planificador" | `/planner` |
+| "revisión" | `/review` |
+| "lanzamiento", "preparar lanzamiento", "actualizar docs" | `/release` |
+| "diagnóstico del sistema", "restricción", "salud del sistema" | `/triz` |
+| "diagrama", "dibujar esquema" | `/diagram` |
+| "retrofit", "brownfield", "reevaluar proyecto" | `/retrofit` |
+| "auditoría profunda", "auditoría completa" | `/audit deep` |
 
 ## Action
 

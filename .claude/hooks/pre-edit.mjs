@@ -4,7 +4,6 @@
  * Hard blocks:
  * - Files outside Allowed Files in spec (when spec exists)
  * - Protected test files (contracts/, regression/)
- * - Plan-before-code gate (src/ edits blocked when autopilot-state.json has plan_exists: false)
  *
  * Soft blocks:
  * - Files exceeding LOC limits (400 code, 600 tests)
@@ -13,7 +12,7 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, normalize } from 'path';
 import {
   allowTool,
   askTool,
@@ -22,7 +21,6 @@ import {
   denyTool,
   getProjectDir,
   getToolInput,
-  getWorktreeRoot,
   inferSpecFromBranch,
   isFileAllowed,
   loadConfig,
@@ -38,11 +36,11 @@ const FALLBACK_WARN_THRESHOLD = 7 / 8;
 const FALLBACK_SYNC_ZONES = ['.claude/', 'scripts/'];
 const FALLBACK_EXCLUDE_SYNC = [
   '.claude/rules/localization.md',
+  '.claude/rules/template-sync.md',
+  '.claude/rules/git-local-folders.md',
   '.claude/CUSTOMIZATIONS.md',
   '.claude/settings.local.json',
 ];
-const FALLBACK_INT_PATTERNS = [/^tests\/integration\//, /\.integration\.test\./, /\.integration\.spec\./];
-const FALLBACK_MOCK_PATTERNS = [/jest\.mock\s*\(/, /vi\.mock\s*\(/, /\bunittest\.mock\b/, /\bMagicMock\b/, /@patch\b/, /\bmock\.patch\b/, /\bsinon\.stub\b/, /\bsinon\.mock\b/];
 
 function countLines(filePath) {
   try {
@@ -62,36 +60,6 @@ const TEST_FILE_PATTERNS = [
 
 function isTestFile(filePath) {
   return TEST_FILE_PATTERNS.some(pattern => pattern.test(filePath));
-}
-
-function isIntegrationTest(relPath, patterns) {
-  return patterns.some(p => p.test(relPath));
-}
-
-function containsMockPattern(content, patterns) {
-  if (!content) return null;
-  for (const p of patterns) {
-    if (p.test(content)) return p.source;
-  }
-  return null;
-}
-
-/**
- * Find autopilot-state.json in project dir or worktree root.
- * Covers mismatch when CLAUDE_PROJECT_DIR != cwd worktree.
- */
-function findAutopilotState() {
-  const candidates = [join(getProjectDir(), 'autopilot-state.json')];
-  const worktreeRoot = getWorktreeRoot();
-  if (worktreeRoot) {
-    candidates.push(join(worktreeRoot, 'autopilot-state.json'));
-  }
-  for (const p of candidates) {
-    if (existsSync(p)) {
-      try { return JSON.parse(readFileSync(p, 'utf-8')); } catch { /* fail-safe */ }
-    }
-  }
-  return null;
 }
 
 function normalizePath(filePath) {
@@ -174,51 +142,6 @@ async function main() {
             `See: CLAUDE.md -> Test Safety`,
         );
         return;
-      }
-    }
-
-    // Check mock ban in integration tests (Hard Block)
-    const mockBan = config?.preEdit?.mockBan;
-    if (mockBan?.enabled !== false) {
-      const intPatterns = mockBan?.integrationTestPatterns || FALLBACK_INT_PATTERNS;
-      if (isIntegrationTest(relPath, intPatterns)) {
-        const newContent = getToolInput(data, 'new_string') || getToolInput(data, 'content') || '';
-        const mockPats = mockBan?.mockPatterns || FALLBACK_MOCK_PATTERNS;
-        const matched = containsMockPattern(newContent, mockPats);
-        if (matched) {
-          debugLog('pre-edit', 'deny', { reason: 'mock_in_integration', file: relPath, pattern: matched });
-          timer.end('deny');
-          denyTool(
-            `Mock in integration test!\n\n` +
-              `${relPath}\nPattern: ${matched}\n\n` +
-              `Integration tests must use real dependencies (Testcontainers).\n` +
-              `Mocks allowed only in tests/unit/.`,
-          );
-          return;
-        }
-      }
-    }
-
-    // Check plan-before-code gate (Hard Block)
-    // Only activates when autopilot-state.json exists AND plan_exists is false
-    const requirePlan = config?.enforcement?.requirePlanBeforeCode !== false;
-    if (requirePlan && relPath.startsWith('src/')) {
-      try {
-        const autopilotState = findAutopilotState();
-        if (autopilotState && autopilotState.plan_exists === false) {
-          debugLog('pre-edit', 'deny', { reason: 'no_plan', file: relPath });
-          timer.end('deny');
-          denyTool(
-            'Plan not found in spec. Run planner first.\n\n' +
-              `File: ${relPath}\n` +
-              'autopilot-state.json shows plan_exists: false\n\n' +
-              'The planner must create an implementation plan before code changes.\n' +
-              'See: task-loop.md -> Step 1',
-          );
-          return;
-        }
-      } catch {
-        // fail-safe: autopilot-state read error = don't block (ADR-004)
       }
     }
 

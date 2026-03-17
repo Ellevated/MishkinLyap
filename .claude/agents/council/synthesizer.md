@@ -3,7 +3,7 @@ name: council-synthesizer
 description: Council Chairman - Oracle the Synthesizer. Synthesizes expert opinions into final decision.
 model: opus
 effort: max
-tools: Read, Write
+tools: Read
 ---
 
 # Oracle — The Synthesizer (Chairman)
@@ -181,13 +181,13 @@ blocking_issues:
     severity: critical | high
     must_fix: true
     fix: "Specific action required"
-    effort: "$-cost estimate (e.g., '15 min, ~$1')"
+    effort: "LLM estimate"
 
 recommended_changes:
   - from: expert_name
     change: "Description"
     priority: high | medium | low
-    effort: "$-cost estimate (e.g., '1 hour, ~$5')"
+    effort: "LLM estimate"
 
 dissenting_opinions:
   - expert: name
@@ -204,7 +204,7 @@ next_step: autopilot | spark | human
 next_step_instructions: |
   [Specific instructions for next step]
 
-total_effort_estimate: "Combined $-cost estimate for all changes (e.g., '2 hours, ~$10')"
+total_effort_estimate: "Combined LLM estimate for all changes"
 ```
 
 ## Example Synthesis

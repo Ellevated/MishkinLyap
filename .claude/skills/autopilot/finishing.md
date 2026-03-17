@@ -32,14 +32,6 @@ Final verification, status update, merge, and cleanup.
 7. Push feature branch (backup):
    git push -u origin {type}/{ID}
 
-7.5. POST-DEPLOY VERIFY (conditional):
-   If spec has DEPLOY_URL (not "local-only"):
-   a. Poll DEPLOY_URL every 10s (max 120s wait)
-   b. Run Smoke checks from spec against DEPLOY_URL
-   c. Run Functional checks from spec against DEPLOY_URL
-   All results are WARN only, never blocks.
-   No DEPLOY_URL or "local-only" → skip entirely.
-
 8. Merge to develop:
    cd "$MAIN_REPO"
    git checkout develop
@@ -48,12 +40,6 @@ Final verification, status update, merge, and cleanup.
    git merge --ff-only {type}/{ID}
    git push origin develop
    git stash pop (if stashed)
-
-8.5. Preserve telemetry (before worktree cleanup):
-   ```bash
-   cp ".worktrees/{ID}/autopilot-state.json" "ai/diary/{ID}-state.json" 2>/dev/null || true
-   ```
-   Rich execution data (per-step timing, retries, outcomes) preserved for /reflect.
 
 9. Cleanup:
    **Safety check:** Verify no uncommitted changes before force-removal
@@ -94,22 +80,26 @@ After tests pass, before Pre-Done Checklist:
 - Did coder find spec gaps during implementation?
 - Did blueprint compliance check fail and need fixes?
 
-**Step 3:** If issues found, write upstream signals directly (no subagent — ADR-007):
+**Step 3:** If issues found, write upstream signals:
 
+```yaml
+Task tool:
+  subagent_type: "diary-recorder"
+  model: haiku
+  prompt: |
+    spec_id: "{TASK_ID}"
+    spec_path: "ai/features/{TASK_ID}*.md"
+    git_diff_summary: "{summary of changes}"
+    issues_found:
+      - type: gap | contradiction | missing_rule
+        message: "{what was missing or wrong}"
+        evidence: "{file:line — specific evidence}"
+
+    TASK: Write upstream signal to ai/reflect/upstream-signals.md
+    Format: SIGNAL-{timestamp} with source=autopilot, target=spark|architect
+
+    If no issues → write nothing (no empty signals!)
 ```
-Edit tool → ai/reflect/upstream-signals.md
-
-Append:
----
-### SIGNAL-{YYYY-MM-DD-HHMM}
-- **Source:** autopilot ({TASK_ID})
-- **Target:** spark | architect
-- **Type:** gap | contradiction | missing_rule
-- **Message:** {what was missing or wrong}
-- **Evidence:** {file:line — specific evidence}
-```
-
-If no issues → write nothing (no empty signals!).
 
 **Rules:**
 - Reflect is INFORMATIONAL — never blocks finishing
@@ -179,10 +169,6 @@ For EACH task, verify:
 - [ ] Pushed to develop
 - [ ] `git status` shows clean working directory
 
-### Acceptance Verification (if spec has AV section)
-- [ ] LOCAL VERIFY results logged for each task
-- [ ] POST-DEPLOY VERIFY attempted (if DEPLOY_URL present)
-
 ### Cleanup
 - [ ] Autopilot Log updated in spec file
 - [ ] Status synced: spec=done AND backlog=done
@@ -205,8 +191,6 @@ Add to feature file:
 - Spec Reviewer: approved | needs_implementation | needs_removal
 - Code Quality Reviewer: approved | needs_refactor
 - Exa Verify: no issues | WARNING: {description}
-- Local Verify: pass | warn: {details} | skip (no AV)
-- Post-Deploy Verify: pass | warn: {details} | skip (no URL)
 - Commit: abc1234 | BLOCKED (reviewer not approved)
 ```
 

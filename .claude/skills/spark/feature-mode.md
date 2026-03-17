@@ -28,82 +28,23 @@ SESSION_DIR = ai/.spark/{YYYYMMDD}-{spec_id}/
 
 ---
 
-## State Tracking (Enforcement as Code)
-
-After EACH phase, update the session state file:
-
-```
-Write tool → {SESSION_DIR}/state.json
-```
-
-**Format:** See `.claude/scripts/spark-state.mjs` for utilities.
-
-**After each phase completes:**
-1. Update state.json with phase status = "done" and timestamp
-2. For research phase: include `files` array with research file names
-3. For decide phase: include `approach` number selected
-
-**This is NOT optional.** Hooks read state.json to validate spec completeness.
-
----
-
-### Cost Estimate
-
-Before launching Phase 2 (Research), inform user (non-blocking):
-
-```
-"Feature spec: {title} — 4 scouts (parallel) + synthesis, est. ~$1-3. Running..."
-```
-
----
-
 ## FORBIDDEN ACTIONS (ADR-007/008/009/010)
 
 ```
 ⛔ NEVER store scout responses in orchestrator variables
 ⛔ NEVER pass full scout output in another scout's prompt
-⛔ NEVER use TaskOutput to read scout results
-⛔ NEVER read output_file paths from background scouts
 
 ✅ ALL scout Task calls use run_in_background: true
 ✅ Scouts WRITE output to SESSION_DIR files
 ✅ File gates (Glob) verify scout completion
-✅ Orchestrator reads scout files for synthesis (4 files × ~5K = ~20K acceptable)
+✅ Orchestrator reads scout files for synthesis (~20K acceptable)
 ```
-
-Note: Phase 3 synthesis reads scout output files directly (~20K total). This is an acceptable exception to ADR-010 zero-read — small, bounded output from 4 scouts.
-
----
-
-### Degraded Mode
-
-If scout phases fail partially, continue with available data:
-
-| Failed Phase | Action | Impact |
-|-------------|--------|--------|
-| Phase 2: 1 scout fails | Continue with 3 of 4 scouts | Note missing perspective in synthesis |
-| Phase 2: 2+ scouts fail | Continue with available (min 2 required) | Reduced analysis quality, note gaps |
-| Phase 2: All scouts fail | Skip research, proceed with user input only | Spec based on dialogue only, note "No external research" |
-| Phase 3: Synthesis fails | Read scout files directly, present raw findings | User manually picks approach |
-| Phase 6: Validation fails | Retry once, then skip validation gate | Note "Spec not validated" |
-
-Minimum viable spec: user dialogue (Phase 1) + 2 scout reports.
 
 ---
 
 ## Phase 1: COLLECT (Socratic Dialogue)
 
-Three modes depending on feature origin:
-
-### Mode H: Headless (Orchestrator-Initiated)
-
-Detected by `[headless]` marker or `Source:` field in prompt.
-All information is already provided — DO NOT ask questions.
-
-1. Read the prompt content as the complete problem statement
-2. If `Context:` field present — Read the linked document
-3. Extract problem statement, proceed directly to Phase 2
-4. State.json: collect = done
+Two modes depending on feature origin:
 
 ### Mode A: Human-Initiated
 
@@ -140,15 +81,6 @@ Architect/Board assigned this task — read from blueprint, do NOT ask user.
 3. Human = 0% involvement (per design doc)
 
 **Output for both modes:** Problem statement captured, ready for scouts.
-
-<HARD-GATE>
-DO NOT proceed to Phase 2 until:
-- [ ] state.json initialized with initState()
-- [ ] state.json updated: collect = done
-- [ ] Problem statement clearly captured
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "the feature is obvious, no need for questions"
-</HARD-GATE>
 
 ---
 
@@ -212,15 +144,6 @@ Glob("{SESSION_DIR}/research-*.md") → must find 4 files
 If < 4: launch extractor subagent for missing files (caller-writes fallback, ADR-007)
 ```
 
-<HARD-GATE>
-DO NOT proceed to Phase 3 until:
-- [ ] ALL 4 scout completion notifications received
-- [ ] Glob confirms 4 research files exist in SESSION_DIR
-- [ ] state.json updated: research = done, files = [list of 4 files]
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "this is simple enough to skip research"
-</HARD-GATE>
-
 ---
 
 ## Phase 3: SYNTHESIZE
@@ -251,50 +174,27 @@ For each approach:
 
 **Output:** 2-3 approaches ready for Phase 4 decision.
 
-<HARD-GATE>
-DO NOT proceed to Phase 4 until:
-- [ ] 2-3 approaches documented with pros/cons
-- [ ] Every claim cites a scout research file
-- [ ] state.json updated: synthesize = done
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "there's only one obvious approach"
-</HARD-GATE>
-
 ---
 
 ## Phase 4: DECIDE
 
-### Impact x Risk Routing Matrix
-
-Assign Priority (P0/P1/P2) and Risk (R0/R1/R2) from research, then route:
-
-```
-Risk Classification:
-R0 = Irreversible: data loss, schema migration, security exposure, public API break
-R1 = High blast radius: 3+ files, cross-domain, external dependency, state machine change
-R2 = Contained: 1-2 files, single domain, internal, trivially rollbackable
-```
-
-| Impact \ Risk | R0 (Irreversible) | R1 (Blast radius) | R2 (Contained) |
-|---|---|---|---|
-| P0 | COUNCIL | HUMAN | AUTO |
-| P1 | COUNCIL | AUTO | AUTO |
-| P2 | HUMAN | AUTO | AUTO |
+Route based on feature scope, clarity, and risk:
 
 ### AUTO (you decide)
-- Matrix says AUTO
 - Feature is within blueprint constraints
+- Scope is clear from dialogue
+- No controversial trade-offs
 - Devil scout's verdict is "Proceed"
 → Select best approach, move to Phase 5
 
 ### HUMAN (ask user)
-- Matrix says HUMAN
 - Multiple approaches with no clear winner
 - Scope unclear after dialogue
+- Devil scout suggests simpler alternative
 → Present 2-3 approaches, user chooses
 
 ### COUNCIL (escalate)
-- Matrix says COUNCIL
+- Controversial (Devil scout says "Proceed with caution")
 - Cross-domain impact (affects 3+ domains)
 - Major architectural decision
 → `/council` (5 experts + cross-critique)
@@ -303,15 +203,6 @@ R2 = Contained: 1-2 files, single domain, internal, trivially rollbackable
 - Blueprint gap (domain missing, rule missing)
 - Blueprint contradiction (research conflicts with blueprint)
 → Architect updates blueprint → retry from Phase 3
-
-<HARD-GATE>
-DO NOT proceed to Phase 5 until:
-- [ ] Decision route selected (AUTO/HUMAN/COUNCIL/ARCHITECT)
-- [ ] If HUMAN: user has explicitly chosen an approach
-- [ ] state.json updated: decide = done, approach = N
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "I already know what the user wants"
-</HARD-GATE>
 
 ---
 
@@ -489,73 +380,20 @@ Map every User Flow step to Implementation Task:
 
 ---
 
-## Eval Criteria (MANDATORY)
+## Tests (MANDATORY)
 
-### Deterministic Assertions
+### What to test
+- [ ] {test case 1 — concrete scenario}
+- [ ] {test case 2}
+- [ ] {edge case from devil's advocate}
 
-| ID | Scenario | Input | Expected | Type | Source | Priority |
-|----|----------|-------|----------|------|--------|----------|
-| EC-1 | {scenario} | {input} | {expected behavior} | deterministic | {devil/user/blueprint} | P0 |
-| EC-2 | {edge case} | {input} | {expected} | deterministic | {devil scout} | P0 |
-| EC-3 | {boundary} | {input} | {expected} | deterministic | {user requirement} | P1 |
-
-### Integration Assertions (if applicable)
-
-| ID | Setup | Action | Expected | Type | Source | Priority |
-|----|-------|--------|----------|------|--------|----------|
-| EC-N | {preconditions} | {action} | {result} | integration | {source} | P1 |
-
-### LLM-Judge Assertions (if LLM-involved feature)
-
-| ID | Input | Rubric | Threshold | Source | Priority |
-|----|-------|--------|-----------|--------|----------|
-| EC-N | {prompt/input} | {good output criteria} | 0.8 | {source} | P1 |
-
-### Coverage Summary
-- Deterministic: {N} | Integration: {N} | LLM-Judge: {N} | Total: {N} (min 3)
+### How to test
+- Unit: {what to cover with unit tests}
+- Integration: {what needs integration tests}
+- E2E: {if needed — which user flow}
 
 ### TDD Order
-1. Write test from EC-1 -> FAIL -> Implement -> PASS
-2. Continue by priority (P0 first)
-
----
-
-## Acceptance Verification (MANDATORY)
-
-Machine-executable checks: feature WORKS in running system.
-
-### Smoke Checks (process alive)
-
-| ID | Check | Command / Action | Expected | Timeout |
-|----|-------|-----------------|----------|---------|
-| AV-S1 | {service starts} | {command} | exit 0 / ready | 30s |
-
-### Functional Checks (business logic)
-
-| ID | Check | Setup | Action | Expected |
-|----|-------|-------|--------|----------|
-| AV-F1 | {happy path} | {preconditions} | {action} | {result} |
-
-### Verify Command (copy-paste ready)
-
-```bash
-# Smoke
-{exact start command}
-{exact health check}
-# Functional
-{exact test command}
-```
-
-### Post-Deploy URL (if applicable)
-
-```
-DEPLOY_URL={URL or "local-only"}
-```
-
-**Rules:**
-- Commands must be copy-paste executable (no placeholders except project-specific values)
-- Minimum 1 smoke check (AV-S*) + 1 functional check (AV-F*)
-- N/A allowed with reason (e.g., "N/A: pure library, no running process")
+1. Write test → FAIL → Implement → PASS
 
 ---
 
@@ -566,7 +404,7 @@ DEPLOY_URL={URL or "local-only"}
 - [ ] All tasks from Implementation Plan completed
 
 ### Tests
-- [ ] All eval criteria from ## Eval Criteria section pass
+- [ ] All test cases from ## Tests section pass
 - [ ] Coverage not decreased
 
 ### E2E User Journey (REQUIRED for UI features)
@@ -574,11 +412,6 @@ DEPLOY_URL={URL or "local-only"}
 - [ ] User can complete full journey from start to finish
 - [ ] No dead-ends or hanging states
 - [ ] Manual E2E test performed
-
-### Acceptance Verification
-- [ ] All Smoke checks (AV-S*) pass locally
-- [ ] All Functional checks (AV-F*) pass locally
-- [ ] Verify Command runs without errors
 
 ### Technical
 - [ ] Tests pass (./test fast)
@@ -590,20 +423,11 @@ DEPLOY_URL={URL or "local-only"}
 [Auto-populated by autopilot during execution]
 ```
 
-<HARD-GATE>
-DO NOT proceed to Phase 6 until:
-- [ ] Full spec written to ai/features/{TASK_ID}-*.md
-- [ ] All template sections filled (no {placeholders} remain)
-- [ ] state.json updated: write = done
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "I'll fill the remaining sections later"
-</HARD-GATE>
-
 ---
 
 ## Phase 6: VALIDATE
 
-Before marking spec `queued`, run 6 structural validation gates.
+Before marking spec `queued`, run 5 structural validation gates.
 
 ### Gate 1: Spec Completeness
 ```
@@ -614,14 +438,13 @@ Before marking spec `queued`, run 6 structural validation gates.
 □ DoD is measurable?
 ```
 
-### Gate 2: Eval Criteria Gate
+### Gate 2: Tests Gate
 ```
-□ Eval Criteria section filled? (or Tests section for legacy specs)
-□ Minimum 3 eval criteria (EC-N rows)?
+□ Tests section filled?
+□ Minimum 3 test cases?
 □ Has edge case from devil's advocate?
-□ Coverage Summary present?
 □ TDD Order defined?
-□ DoD includes tests/eval?
+□ DoD includes tests?
 ```
 
 ### Gate 3: Blueprint Compliance
@@ -644,25 +467,9 @@ Before marking spec `queued`, run 6 structural validation gates.
 □ No gaps in flow?
 ```
 
-### Gate 6: Acceptance Verification
-```
-□ Has ## Acceptance Verification section?
-□ At least 1 AV-S* and 1 AV-F* check?
-□ Verify Command has real commands (not just placeholders)?
-□ If N/A — reason is valid and documented?
-```
-
 **GATE RESULT:** pass / reject with reasons
 
-**If any gate fails →** spec stays in current state, return to Phase 3 (re-synthesize with feedback).
-
-<HARD-GATE>
-DO NOT proceed to Phase 7 until:
-- [ ] All 6 validation gates pass
-- [ ] state.json updated: validate = done
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "gates are just a formality, spec looks good"
-</HARD-GATE>
+**If any gate fails →** spec stays `draft`, return to Phase 3 (re-synthesize with feedback).
 
 ---
 
@@ -711,14 +518,6 @@ Append to ai/reflect/upstream-signals.md:
 {What Architect/Board should do}
 ```
 
-<HARD-GATE>
-DO NOT proceed to Phase 8 until:
-- [ ] Reflect signals written (if any issues found)
-- [ ] state.json updated: reflect = done
-Skipping this gate = VIOLATION. No rationalization accepted.
-Common rationalization to REJECT: "nothing to reflect on"
-</HARD-GATE>
-
 ---
 
 ## Phase 8: COMPLETION
@@ -728,22 +527,3 @@ After spec is created and validated → read `completion.md` for:
 - Backlog entry format
 - Auto-commit rules
 - Handoff to autopilot
-
-After completion: state.json updated: completion = done
-
----
-
-## Rationalization Pre-emption Table
-
-When you feel tempted to skip a phase, consult this table:
-
-| LLM thinks | Correct action |
-|---|---|
-| "This is too simple for research" | Research can be short, but must happen. Update state.json. |
-| "I already know how to do this" | Knowledge ≠ research. Scout may find a better pattern. |
-| "Tests can be written later" | TDD: test BEFORE code. No test = no commit. |
-| "This file isn't in Allowed Files, but it's needed" | Add it to the spec. Hook will block otherwise. |
-| "There's only one obvious approach" | Document it anyway. Devil's advocate may disagree. |
-| "The user said 'just do it'" | Ask 2-3 minimum clarifying questions anyway. |
-| "Validation gates are a formality" | Gates catch real issues. Run them honestly. |
-| "Nothing to reflect on" | There's always a process signal. Did auto-decide work? |

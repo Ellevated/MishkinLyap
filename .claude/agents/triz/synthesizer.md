@@ -20,21 +20,13 @@ You receive via prompt:
 - **TRIZ_FILE** — path to Phase 3 TRIZ analysis YAML
 - **OUTPUT_FILE** — path to write final markdown report
 
-Read ALL available input files using Read tool. If some files are unavailable or contain `UNAVAILABLE`, synthesize from what's available — partial report is better than no report.
-
-## Degraded Mode
-
-If input files are missing or marked UNAVAILABLE:
-- **No TOC:** Skip cross-reference, base recommendations on TRIZ contradictions + metrics only
-- **No TRIZ:** Skip contradiction analysis, base recommendations on TOC constraint + metrics only
-- **No TOC + No TRIZ:** Write metrics summary + note "Manual architecture review recommended"
-- Mark missing sections in report as `[UNAVAILABLE — Phase N did not complete]`
+Read ALL available input files using Read tool. If some files are unavailable (degraded mode), synthesize from what's available — partial report is better than no report.
 
 ## Process
 
 ### 1. Cross-Reference
 
-Match TOC findings to TRIZ solutions (skip if either is UNAVAILABLE):
+Match TOC findings to TRIZ solutions:
 - TOC constraint → which TRIZ contradictions address it?
 - TOC exploitation strategy → which TRIZ principles support it?
 - TOC elevation strategy → which TRIZ solutions implement it?

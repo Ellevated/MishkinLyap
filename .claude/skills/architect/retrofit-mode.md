@@ -281,8 +281,8 @@ Format:
 **Target state:** {From blueprint — what it should become}
 **Files likely affected:** {rough list}
 **Depends on:** none
-**Risk:** R0 | R1 | R2
-**Compute cost:** ~$1 (1-3 files) | ~$5 (5-10 files) | ~$15 (20+ files)
+**Risk:** low | medium | high
+**Effort estimate:** small | medium | large
 
 ### MP-002: {Title}
 ...

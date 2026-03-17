@@ -16,20 +16,6 @@ files_changed: [...]
 task_scope: "FTR-XXX: description"
 ```
 
-## Test Output Wrapper
-
-For LLM-optimized output, use the test-wrapper:
-
-```bash
-node .claude/scripts/test-wrapper.mjs ./test fast
-```
-
-- **Pass:** Single summary line (e.g., `PASS: 15 tests passed (2.3s)`)
-- **Fail:** Compact failure summary + path to full output file
-- Reduces context noise significantly vs raw test output
-
-**When to use:** Always prefer test-wrapper in autopilot task loop. Use raw commands only for debugging.
-
 ## Smart Testing
 
 **Two approaches:**
@@ -77,17 +63,6 @@ node .claude/scripts/test-wrapper.mjs ./test fast
 | `tests/integration/*` | `pytest tests/integration/ -v -n auto` |
 | `tests/e2e/*` | `pytest tests/e2e/ --e2e -v -n auto` |
 
-### Integration Tests (NO MOCKS — enforced by hook)
-
-| Changed file | Tests to run |
-|--------------|--------------|
-| `src/infra/db/*` | `pytest tests/integration/ -v` |
-| `src/domains/*/repository*` | `pytest tests/integration/ -v` |
-| `tests/integration/*` | `pytest tests/integration/ -v` |
-
-**CRITICAL:** Integration tests use real dependencies (Testcontainers).
-The pre-edit hook HARD-BLOCKS mock patterns in `tests/integration/`.
-
 ### Unit Tests (collocated)
 
 | Changed file | Tests to run |
@@ -115,8 +90,7 @@ The pre-edit hook HARD-BLOCKS mock patterns in `tests/integration/`.
 1. Match file path against tables (top to bottom)
 2. If multiple matches → run all matched commands
 3. If `tests/contracts/` or `tests/regression/` → add ⛔ warning
-4. If file touches DB/infra → also run integration tests
-5. If no match → `./test fast` (fallback)
+4. If no match → `./test fast` (fallback)
 
 **Fallback:** File not in table → `./test fast`
 
@@ -159,51 +133,6 @@ Before reporting test failure:
    - Test path
    - Is immutable? (yes/no)
    - Recommendation: fix code / ask user
-
-## Eval Criteria Testing (LLM-as-Judge)
-
-When spec has `## Eval Criteria` with `llm-judge` type entries:
-
-### Step 1: Parse eval criteria
-
-```bash
-node .claude/scripts/eval-judge.mjs {spec_path} --type llm-judge
-```
-
-Returns JSON array of criteria with `type: "llm-judge"`.
-
-### Step 2: For each llm-judge criterion
-
-1. Run the feature input through the implementation
-2. Capture actual output
-3. Dispatch eval-judge agent:
-
-```yaml
-Task tool:
-  subagent_type: "eval-judge"
-  prompt: |
-    criterion_id: "{id}"
-    input: "{input from criterion}"
-    actual_output: "{captured output}"
-    rubric: "{rubric from criterion}"
-    threshold: {threshold from criterion}
-```
-
-### Step 3: Include results in tester output
-
-```yaml
-eval_criteria_results:
-  - criterion_id: "EC-4"
-    score: 0.82
-    pass: true
-  - criterion_id: "EC-5"
-    score: 0.45
-    pass: false
-```
-
-If any llm-judge criterion fails → report as `failed_in_scope`.
-
-**When to skip:** If `eval-judge.mjs` returns empty array (no llm-judge criteria), skip this section entirely.
 
 ## Limits
 - `./test fast`: max 5 fails

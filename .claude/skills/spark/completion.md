@@ -42,7 +42,7 @@ Sequential ID assignment is NOT atomic. If two spark instances run concurrently:
 2. [ ] **Uniqueness check** — grep backlog didn't find this ID
 3. [ ] **Spec file created** — ai/features/TYPE-XXX-YYYY-MM-DD-name.md
 4. [ ] **Entry added to backlog** — in active tasks table
-5. [ ] **Status = queued** — spec ready for orchestrator pickup!
+5. [ ] **Status = queued** — spec ready for autopilot!
 6. [ ] **Function overlap check** (ARCH-226) — grep other queued specs for same function names
    - If overlap found: merge into single spec OR mark dependency
 7. [ ] **Auto-commit done** — `git add ai/ && git commit` (no push!)
@@ -79,26 +79,26 @@ Autopilot reads ONLY backlog — orphan spec files are invisible to it.
 When setting status in spec, **verbally confirm**:
 
 ```
-"Setting spec file: Status → queued"        [Write/Edit spec]
-"Setting backlog entry: Status → queued"    [Edit backlog]
-"Both set? ✓"                               [Verify match]
+"Setting spec file: Status → queued"       [Write/Edit spec]
+"Setting backlog entry: Status → queued"   [Edit backlog]
+"Both set? ✓"                              [Verify match]
 ```
 
-⛔ **One place only = desync = orchestrator won't find the task!**
+⛔ **One place only = desync = autopilot won't see the task!**
 
 ### Backlog entry format:
 ```
-| ID | Task | Status | Priority | Risk | Feature.md |
-|----|------|--------|----------|------|------------|
-| FTR-XXX | Task name | queued | P1 | R2 | [FTR-XXX](features/FTR-XXX-YYYY-MM-DD-name.md) |
+| ID | Task | Status | Priority | Feature.md |
+|----|------|--------|----------|------------|
+| FTR-XXX | Task name | queued | P1 | [FTR-XXX](features/FTR-XXX-YYYY-MM-DD-name.md) |
 ```
 
 ### Status on Spark exit:
 | Situation | Status | Reason |
 |-----------|--------|--------|
-| Spark completed fully | `queued` | Ready for orchestrator pickup |
-| Spec created but interrupted | `queued` | Orchestrator will pick up on next cycle |
-| Needs discussion/postponed | `queued` | Left for refinement, orchestrator holds until slot available |
+| Spark completed fully | `queued` | Autopilot can pick up |
+| Spec created but interrupted | `draft` | Autopilot does NOT take draft |
+| Needs discussion/postponed | `draft` | Left for refinement |
 
 ---
 
@@ -177,23 +177,18 @@ Each spec is fully independent. User can run autopilot on any single spec.
 
 ---
 
-## Auto-Commit + Push (MANDATORY)
+## Auto-Commit (MANDATORY before handoff!)
 
-After spec file is created and backlog updated — commit and push:
+After spec file is created and backlog updated — commit ALL changes locally:
 
 ```bash
 # 1. Stage spec-related changes only (explicit paths, not entire ai/ directory)
 git add "ai/features/${TASK_ID}"* ai/backlog.md 2>/dev/null
 
-# 2. Commit
-# Note: If ai/ is in .gitignore, git add is a no-op (expected)
+# 2. Commit locally only if something was staged (NO PUSH!)
+# Note: If ai/ is in .gitignore, git add is a no-op — no commit is created (correct behavior)
 git diff --cached --quiet || git commit -m "docs: create spec ${TASK_ID}"
-
-# 3. Push to develop (orchestrator pulls from remote)
-git push origin develop
 ```
-
-**Why push:** Orchestrator runs on VPS — needs specs on remote to pull and process.
 
 **Why `git add ai/` (not `-A`):**
 - Only commits spec, backlog, diary — controlled files
@@ -202,43 +197,50 @@ git push origin develop
 
 **Bug Hunt mode:** Uses its own commit pattern from `bug-mode.md` (explicit file list instead of `ai/`).
 
-### CI Protection
+**Why NO push:**
+- CI doesn't trigger (saves money)
+- Spec validation doesn't fail
+- Commit is protected locally — won't be lost
+- Autopilot will push everything at the end of PHASE 3
 
-Projects MUST have `ai/**` in `.github/workflows` `paths-ignore`.
-Otherwise each spark push triggers CI on documentation-only changes.
-
-```yaml
-# .github/workflows/ci.yml
-on:
-  push:
-    paths-ignore:
-      - 'ai/**'
-      - '*.md'
-```
+**When:** ALWAYS before asking "Run autopilot?"
 
 ---
 
-## Completion — No Handoff
+## Auto-Handoff to Autopilot
 
-After spec is committed and pushed, Spark is DONE. No autopilot handoff.
+After Spec is complete — auto-handoff to Autopilot. No manual "plan" step!
 
 **Flow:**
-1. Spec saved to `ai/features/TYPE-XXX-YYYY-MM-DD-name.md` with status `queued`
-2. Committed + pushed to develop
-3. Orchestrator detects queued spec on next cycle
-4. Autopilot picks it up
+1. Spec saved to `ai/features/TYPE-XXX-YYYY-MM-DD-name.md`
+2. Ask user: "Spec ready. Run autopilot?"
+3. If user confirms → invoke Skill tool with `skill: "autopilot"`
+4. If user declines → stop and let user decide
 
-**Announcement format (interactive mode only):**
+**Announcement format:**
 ```
 Spec ready: `ai/features/TYPE-XXX-YYYY-MM-DD-name.md`
 
 **Summary:**
 - [2-3 bullet points what will be done]
 
-Spec is queued. Orchestrator will hand it to autopilot.
+Run autopilot?
 ```
 
-**DO NOT invoke `/autopilot`.** Orchestrator manages the lifecycle.
+**What happens in Autopilot:**
+- Plan Subagent creates detailed tasks
+- Fresh Coder/Tester/Reviewer subagents per task
+- Auto-commit after each task
+- All in isolated worktree branch
+
+**Exception: Council first**
+If task is complex/controversial (architecture change, >10 files, breaking change):
+```
+Spec ready, but recommend Council review before implementation.
+Reason: [why controversial]
+
+Run council?
+```
 
 ---
 
@@ -257,6 +259,5 @@ Write spec file when spec is complete, then ask about autopilot handoff.
 ```yaml
 status: complete | needs_discussion | blocked
 spec_path: ai/features/TYPE-XXX-YYYY-MM-DD-name.md  # file MUST exist
-spec_status: queued  # always queued — orchestrator picks up on next cycle
-pushed: true | false
+handoff: autopilot | council | blocked
 ```
