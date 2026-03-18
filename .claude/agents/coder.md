@@ -77,6 +77,7 @@ BEFORE modifying ANY file:
 - **Follow project style** — type hints, async, Google docstrings
 - **Prompt versions** — NEVER edit existing, always create new vX.Y.md
 - **Test placement** — unit tests next to code: `foo.py` → `foo_test.py`
+- **Integration tests for DB code** — code touching DB/infra requires test in `tests/integration/` with real DB. NO mocks in integration tests (hook enforced).
 - **Migrations** — CRITICAL: See Migration Rules below
 
 ## Research Tools
@@ -112,11 +113,29 @@ research_sources_used:
     used_for: "pattern X"
 ```
 
+## Mock Boundaries (ADR-014)
+
+When writing tests, follow strict mock boundaries:
+
+| What to mock | Example | OK? |
+|--------------|---------|-----|
+| External HTTP APIs | `requests.post`, `httpx.AsyncClient` | ✅ |
+| Time / randomness | `datetime.now`, `random.choice` | ✅ |
+| Env vars / config | `os.environ`, `settings.X` | ✅ |
+| DB query results / row dicts | `{"amount_kopecks": 100}` | ⛔ |
+| Repository return values | `mock_repo.get.return_value = {...}` | ⛔ |
+| ORM model instances | `Mock(spec=UserModel)` | ⛔ |
+
+**Rule:** If a test needs DB data shapes — it's an integration test, put it in `tests/integration/` with real DB.
+
+**Why:** Mocked row shapes drift from real SQL schema silently. Tests pass, prod breaks.
+
 ## Red Flags
 - Copy-paste large chunks
 - Change unrelated files
 - Add deps without reason
 - Edit existing prompt versions
+- Mocking DB result shapes in unit tests (ADR-014)
 
 ## Module Headers Workflow (MANDATORY)
 
@@ -190,6 +209,13 @@ New file location:
 Verify imports follow: `shared ← infra ← domains ← api`
 - `from src.domains.X import Y` in `src/infra/` → ⛔ WRONG!
 - `from src.infra.X import Y` in `src/domains/` → OK
+
+### 5. Integration Test Check
+
+If task involves DB or infra changes:
+- [ ] Integration test exists in `tests/integration/`?
+- [ ] Test uses real dependencies (no mocks)?
+If NO → create integration test before completing.
 
 **If ANY check fails:**
 ```yaml

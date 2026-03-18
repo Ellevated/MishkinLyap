@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "versions": {
+    "3.11": {
+      "removed": [],
+      "renamed": {}
+    },
+    "3.13": {
+      "removed": [],
+      "renamed": {
+        ".claude/skills/skill-writer/SKILL.md": ".claude/skills/skill-creator/SKILL.md"
+      }
+    }
+  }
+}
