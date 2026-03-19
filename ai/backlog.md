@@ -47,7 +47,7 @@
 
 | Status | Meaning |
 |--------|---------|
-| draft | Spec in progress |
+| draft | Legacy — manual override only, Spark never outputs this |
 | queued | Ready for autopilot |
 | in_progress | Autopilot working |
 | blocked | Needs human |
