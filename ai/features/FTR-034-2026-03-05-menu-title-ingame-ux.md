@@ -1,5 +1,5 @@
 # Feature: [FTR-034] Menu Title + In-Game UX
-**Status:** done | **Priority:** P1 | **Date:** 2026-03-05
+**Status:** blocked | **Priority:** P1 | **Date:** 2026-03-05
 
 ## Why
 Menu screen shows plain text "Мишкин Ляп" without visual identity — no mascot, no brand presence. During gameplay there is no way to exit to menu (only available after game over). The game-over line is at y=120 but checks animal center position, so large animals visually overflow far above the line before triggering — feels unfair.
