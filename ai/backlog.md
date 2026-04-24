@@ -39,7 +39,7 @@
 | FTR-031 | Player Stats & Investment Display | done | P1 | [FTR-031](features/FTR-031-2026-03-05-player-stats-investment.md) |
 | FTR-032 | Visual & Audio Polish | done | P0 | [FTR-032](features/FTR-032-2026-03-05-visual-audio-polish.md) |
 | BUG-033 | UI Polish Batch — Game Over, Menu, Game Scene | done | P0 | [BUG-033](features/BUG-033-2026-03-05-ui-polish-batch.md) |
-| FTR-034 | Menu Title + In-Game UX | in_progress | P1 | [FTR-034](features/FTR-034-2026-03-05-menu-title-ingame-ux.md) |
+| FTR-034 | Menu Title + In-Game UX | done | P1 | [FTR-034](features/FTR-034-2026-03-05-menu-title-ingame-ux.md) |
 
 ---
 
