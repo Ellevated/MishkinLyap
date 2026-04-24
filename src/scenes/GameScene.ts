@@ -149,13 +149,18 @@ export class GameScene extends Phaser.Scene {
       this.add.line(0, 0, GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, 0xc44832, 0.3).setOrigin(0).setDepth(10);
     }
     if (mode !== 'classic') {
-      this.add.text(10, 10, mode === 'daily' ? 'Ежедневная' : 'Без стресса', { fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setDepth(10);
+      // Positioned to the right of exit button (x=30 ± 24) to avoid visual overlap
+      this.add.text(60, 10, mode === 'daily' ? 'Ежедневная' : 'Без стресса', { fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setDepth(10);
     }
 
-    // Exit button (top-left)
+    // Exit button (top-left) — 48x48 hit area for 55+ accessibility (brand rule)
     const exitBtn = this.add.text(30, 30, '←', {
       fontSize: '32px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY,
-    }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+    }).setOrigin(0.5).setDepth(10).setInteractive({
+      hitArea: new Phaser.Geom.Rectangle(-24, -24, 48, 48),
+      hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+      useHandCursor: true,
+    });
     exitBtn.on('pointerup', () => {
       if (this.phase !== 'playing') return;
       this.scene.pause();
