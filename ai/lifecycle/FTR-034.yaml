@@ -1,13 +1,18 @@
 allowed_files_hash: null
-blocked_reason: null
-finished_at: null
+blocked_reason: already_merged:b03c5cc,4ab1c3c
+finished_at: '2026-05-16T14:18:20Z'
 kind: tech
 priority: p1
-pueue_id: null
+pueue_id: 192
 spec_id: FTR-034
 started_at: null
-status: queued
-transitions: []
-updated_at: '2026-05-16T13:57:12Z'
-updated_by: orchestrator
-version: 1
+status: done
+transitions:
+- at: '2026-05-16T14:18:20Z'
+  by: callback
+  from: queued
+  pueue_id: 192
+  to: done
+updated_at: '2026-05-16T14:18:20Z'
+updated_by: callback
+version: 2
