@@ -1,4 +1,6 @@
 ---
+paths:
+  - ".claude/rules/domains/**"
 domain: {name}
 path: src/domains/{name}/
 ---

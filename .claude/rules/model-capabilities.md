@@ -1,3 +1,9 @@
+---
+paths:
+  - ".claude/agents/**"
+  - ".claude/skills/**"
+---
+
 # Model Capabilities (Claude Opus 4.6)
 
 Reference for agents about current model capabilities.

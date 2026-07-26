@@ -1,3 +1,9 @@
+---
+paths:
+  - "src/**"
+  - "scripts/**"
+---
+
 # Project Dependencies
 
 Dependency map between project components.

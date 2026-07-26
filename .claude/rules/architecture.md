@@ -1,3 +1,9 @@
+---
+paths:
+  - "src/**"
+  - "scripts/**"
+---
+
 # Architecture
 
 Architectural decisions and patterns for the project.
