@@ -1,12 +1,12 @@
 # Feature: [FTR-034] Menu Title + In-Game UX
-**Status:** queued | **Priority:** P1 | **Date:** 2026-03-05
+**Status:** done | **Priority:** P1 | **Date:** 2026-03-05
 
 ## Why
 Menu screen shows plain text "Мишкин Ляп" without visual identity — no mascot, no brand presence. During gameplay there is no way to exit to menu (only available after game over). The game-over line is at y=120 but checks animal center position, so large animals visually overflow far above the line before triggering — feels unfair.
 
 ## Context
 - Target audience: women 55+ (Yandex Games)
-- Mascot asset already generated: `brandbook/assets/ml_mascot_nobg.png` (512x512 PNG, transparent bg)
+- Mascot asset already generated: `brandbook/assets/ml_mascot_nb2_v2.png` (512x512 PNG, transparent bg)
 - MenuScene: 203 LOC, GameScene: 398 LOC (near 400 limit — extract exit dialog to PauseScene)
 - Current values: `GAME_OVER_LINE_Y: 120`, `CONTAINER_TOP_Y: 100`, spawn at `GAME_OVER_LINE_Y + 30`
 

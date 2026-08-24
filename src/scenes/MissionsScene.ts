@@ -38,6 +38,7 @@ export class MissionsScene extends Phaser.Scene {
       this.add.text(30, y, `${icon} ${text}`, {
         fontSize: '18px', color: done ? '#4A7A30' : BRAND.TEXT_INK,
         fontFamily: BRAND.FONT_BODY, fontStyle: done ? 'bold' : '',
+        fixedWidth: 340,
       }).setOrigin(0, 0.5);
       y += 30;
 
@@ -77,6 +78,7 @@ export class MissionsScene extends Phaser.Scene {
     btn.setInteractive({ useHandCursor: true });
     this.add.text(w / 2, btnY, 'Назад', {
       fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: 168, align: 'center',
     }).setOrigin(0.5);
     btn.on('pointerover', () => btn.setFillStyle(0xe8c47a));
     btn.on('pointerout', () => btn.setFillStyle(0xede0c4));

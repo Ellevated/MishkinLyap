@@ -35,11 +35,13 @@ export class AchievementsScene extends Phaser.Scene {
       this.add.text(30, y, a.icon, { fontSize: '24px' }).setOrigin(0, 0.5).setAlpha(alpha);
       this.add.text(65, y, `${a.name}${mark}`, {
         fontSize: '18px', color: nameColor, fontFamily: BRAND.FONT_BODY, fontStyle: a.unlocked ? 'bold' : '',
+        fixedWidth: 350,
       }).setOrigin(0, 0.5);
 
       y += 22;
       this.add.text(65, y, a.description, {
         fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+        fixedWidth: 350,
       }).setOrigin(0, 0.5);
 
       // Progress bar for locked achievements
@@ -65,6 +67,7 @@ export class AchievementsScene extends Phaser.Scene {
     btn.setInteractive({ useHandCursor: true });
     this.add.text(w / 2, btnY, 'Назад', {
       fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: 168, align: 'center',
     }).setOrigin(0.5);
     btn.on('pointerover', () => btn.setFillStyle(0xe8c47a));
     btn.on('pointerout', () => btn.setFillStyle(0xede0c4));

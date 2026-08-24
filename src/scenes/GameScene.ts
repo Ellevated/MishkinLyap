@@ -6,7 +6,7 @@
  */
 
 import Phaser from 'phaser';
-import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED, JUICE, ACHIEVEMENTS, FEVER } from '../config/GameConfig';
+import { GAME, BRAND, ANIMALS, ADS, PHYSICS, UNDO, MYSTERY, AUDIO_ENHANCED, JUICE, ACHIEVEMENTS, FEVER, VISUAL } from '../config/GameConfig';
 import type { MysteryRewardType, GameMode } from '../config/GameConfig';
 import type { SeasonManager } from '../game/SeasonManager';
 import { EVENTS } from '../config/GameEvents';
@@ -109,28 +109,40 @@ export class GameScene extends Phaser.Scene {
     this.bridge?.gameplayStart();
     this.events.once('shutdown', this.shutdown, this);
 
-    // Visual container walls — styled "wooden planks" overlay
-    const bounds = this.physicsManager.getContainerBounds();
-    const wallH = GAME.HEIGHT - bounds.top, wallY = (bounds.top + GAME.HEIGHT) / 2;
-    const vw = 32; // visual wall width (wider than physics 20px)
+    // Visual container — themed sprites based on mode
+    const containerH = GAME.HEIGHT - GAME.CONTAINER_TOP_Y;
+    const theme = mode === 'relaxation' ? 'meadow' : mode === 'daily' ? 'barrel' : 'trunk';
 
-    // Left wall
-    this.add.rectangle(vw / 2, wallY, vw, wallH, 0x8b6040).setOrigin(0.5);
-    this.add.rectangle(vw - 1, wallY, 2, wallH, 0xa07850).setOrigin(0.5).setAlpha(0.6);
-    for (let gy = bounds.top; gy < GAME.HEIGHT; gy += 24) {
-      this.add.rectangle(vw * 0.4, gy, 1, 20, 0x7a5030).setOrigin(0.5).setAlpha(0.3);
-    }
-    // Right wall
-    this.add.rectangle(GAME.WIDTH - vw / 2, wallY, vw, wallH, 0x8b6040).setOrigin(0.5);
-    this.add.rectangle(GAME.WIDTH - vw + 1, wallY, 2, wallH, 0xa07850).setOrigin(0.5).setAlpha(0.6);
-    for (let gy = bounds.top; gy < GAME.HEIGHT; gy += 24) {
-      this.add.rectangle(GAME.WIDTH - vw * 0.4, gy, 1, 20, 0x7a5030).setOrigin(0.5).setAlpha(0.3);
-    }
-    // Bottom — earth + grass
-    this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT - 16, GAME.WIDTH, 32, 0x5a3e20).setOrigin(0.5);
-    for (let gx = 0; gx < GAME.WIDTH; gx += 16) {
-      const gh = 8 + Math.random() * 8;
-      this.add.rectangle(gx + 8, GAME.HEIGHT - 32 + (12 - gh) / 2, 10, gh, 0x4a7a30).setOrigin(0.5).setAlpha(0.8);
+    if (theme === 'barrel' && this.textures.exists('barrel_frame')) {
+      // Barrel: full frame as background — animals render on top
+      this.add.image(GAME.PLAY_WIDTH / 2, GAME.HEIGHT / 2, 'barrel_frame')
+        .setOrigin(0.5).setDisplaySize(GAME.PLAY_WIDTH, GAME.HEIGHT).setDepth(0);
+    } else {
+      // Background (trunk bg already has bark on sides, no separate wall sprites needed)
+      const bgKey = `${theme}_bg`;
+      if (this.textures.exists(bgKey)) {
+        this.add.image(GAME.PLAY_WIDTH / 2, GAME.HEIGHT / 2, bgKey)
+          .setOrigin(0.5).setDisplaySize(GAME.PLAY_WIDTH, GAME.HEIGHT).setDepth(0);
+      }
+      // Walls — only meadow has separate hill sprites (trunk bg has built-in bark)
+      if (theme === 'meadow') {
+        const leftKey = 'meadow_wall_left';
+        if (this.textures.exists(leftKey)) {
+          const lw = this.add.image(0, GAME.HEIGHT, leftKey).setOrigin(0, 1).setDepth(3);
+          lw.setScale(containerH / lw.height);
+        }
+        const rightKey = 'meadow_wall_right';
+        if (this.textures.exists(rightKey)) {
+          const rw = this.add.image(GAME.PLAY_WIDTH, GAME.HEIGHT, rightKey).setOrigin(1, 1).setDepth(3);
+          rw.setScale(containerH / rw.height);
+        }
+      }
+      // Floor — anchored at bottom, natural aspect ratio
+      const floorKey = `${theme}_floor`;
+      if (this.textures.exists(floorKey)) {
+        const fl = this.add.image(GAME.PLAY_WIDTH / 2, GAME.HEIGHT, floorKey).setOrigin(0.5, 1).setDepth(1);
+        fl.setScale(GAME.PLAY_WIDTH / fl.width);
+      }
     }
 
     // Seasonal effects
@@ -138,15 +150,16 @@ export class GameScene extends Phaser.Scene {
     this.seasonMult = seasonMgr?.getScoreMultiplier() ?? 1;
     const season = seasonMgr?.getActiveSeason();
     if (season && season.particleType !== 'none' && this.textures.exists('particle')) {
-      this.add.particles(0, -10, 'particle', { x: { min: 0, max: GAME.WIDTH }, y: -10, speedY: { min: 30, max: 80 }, lifespan: 6000, quantity: 1, frequency: 500, tint: season.particleColor, scale: { start: 0.5, end: 0.2 }, alpha: { start: 0.6, end: 0 } }).setDepth(1);
+      this.add.particles(0, -10, 'particle', { x: { min: 0, max: GAME.PLAY_WIDTH }, y: -10, speedY: { min: 30, max: 80 }, lifespan: 6000, quantity: 1, frequency: 500, tint: season.particleColor, scale: { start: 0.5, end: 0.2 }, alpha: { start: 0.6, end: 0 } }).setDepth(1);
     }
-    if (season?.bgTint) this.add.rectangle(GAME.WIDTH / 2, GAME.HEIGHT / 2, GAME.WIDTH, GAME.HEIGHT, season.bgTint, 0.08).setDepth(0);
+    if (season?.bgTint) this.add.rectangle(GAME.PLAY_WIDTH / 2, GAME.HEIGHT / 2, GAME.PLAY_WIDTH, GAME.HEIGHT, season.bgTint, 0.08).setDepth(0);
 
-    // UI
-    this.scoreText = this.add.text(GAME.WIDTH / 2, 30, '0', { fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10);
-    this.comboText = this.add.text(GAME.WIDTH / 2 + 80, 30, '', { fontSize: '32px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10).setAlpha(0);
+    // UI — centered on play area
+    const playCenterX = GAME.PLAY_WIDTH / 2;
+    this.scoreText = this.add.text(playCenterX, 30, '0', { fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10);
+    this.comboText = this.add.text(playCenterX + 80, 30, '', { fontSize: '32px', color: '#D4A24C', fontFamily: BRAND.FONT_DISPLAY }).setOrigin(0.5).setDepth(10).setAlpha(0);
     if (mode !== 'relaxation') {
-      this.add.line(0, 0, GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, 0xc44832, 0.3).setOrigin(0).setDepth(10);
+      this.add.line(0, 0, GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, GAME.PLAY_WIDTH - GAME.CONTAINER_WALL_THICKNESS, GAME.GAME_OVER_LINE_Y, 0xc44832, 0.3).setOrigin(0).setDepth(10);
     }
     if (mode !== 'classic') {
       this.add.text(10, 10, mode === 'daily' ? 'Ежедневная' : 'Без стресса', { fontSize: '14px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY }).setDepth(10);
@@ -339,24 +352,41 @@ export class GameScene extends Phaser.Scene {
   restartGame(): void { this.scene.restart(); }
 
   private nextPreviewBg?: Phaser.GameObjects.Arc;
+  private nextPreviewLabel?: Phaser.GameObjects.Text;
 
   private updateNextPreview(): void {
     if (this.nextPreview) this.nextPreview.destroy();
     if (this.nextPreviewBg) this.nextPreviewBg.destroy();
+    if (this.nextPreviewLabel) this.nextPreviewLabel.destroy();
     const cfg = ANIMALS[this.spawner.peekNextTier() - 1];
-    const px = GAME.WIDTH - 50, py = 30;
-    this.nextPreviewBg = this.add.circle(px, py, 28, 0xede0c4).setStrokeStyle(2, 0xd6c6a9).setDepth(9);
+    // Position: sidebar right of container, vertically centered in play area
+    const sidebarCenterX = GAME.PLAY_WIDTH + (GAME.WIDTH - GAME.PLAY_WIDTH) / 2;
+    const px = sidebarCenterX;
+    const py = (GAME.GAME_OVER_LINE_Y + GAME.HEIGHT) / 2;
+    // Size matches actual drop sprite
+    const actualDiameter = cfg.radius * 2 * cfg.spriteScale;
+    const maxPreviewSize = GAME.WIDTH - GAME.PLAY_WIDTH - 12;
+    const previewSize = Math.min(actualDiameter, maxPreviewSize);
+    const bgRadius = previewSize / 2 + 6;
+    this.nextPreviewBg = this.add.circle(px, py, bgRadius, 0xede0c4, 0.85).setStrokeStyle(2, 0xd6c6a9).setDepth(15);
     if (this.textures.exists(cfg.key)) {
-      this.nextPreview = this.add.image(px, py, cfg.key).setDisplaySize(48, 48).setDepth(10);
+      const img = this.add.image(px, py, cfg.key).setDepth(16).setAlpha(0.9);
+      // Scale proportionally (no squish)
+      const maxDim = Math.max(img.width, img.height);
+      img.setScale(previewSize / maxDim);
+      this.nextPreview = img;
     } else {
-      this.nextPreview = this.add.circle(px, py, 24, cfg.color).setDepth(10) as any;
+      this.nextPreview = this.add.circle(px, py, previewSize / 2, cfg.color).setDepth(16).setAlpha(0.9) as any;
     }
+    this.nextPreviewLabel = this.add.text(px, py + bgRadius + 8, 'след.', {
+      fontSize: '10px', color: BRAND.TEXT_SECONDARY, fontFamily: BRAND.FONT_BODY,
+    }).setOrigin(0.5).setDepth(15).setAlpha(0.6);
   }
 
   private showAchievementToasts(ids: string[]): void {
     for (const id of ids) {
       const ach = ACHIEVEMENTS.find(a => a.id === id);
-      if (ach) this.flashText(GAME.WIDTH / 2, -30, `🏆 ${ach.name}!`, '#D4A24C', 22, { y: 8, hold: 1500 });
+      if (ach) this.flashText(GAME.PLAY_WIDTH / 2, -30, `🏆 ${ach.name}!`, '#D4A24C', 22, { y: 8, hold: 1500 });
     }
   }
 
@@ -370,7 +400,7 @@ export class GameScene extends Phaser.Scene {
     this.dropCooldownTimer?.destroy();
     this.dropCooldown = false;
     if (this.phase === 'playing') this.inputHandler.enable();
-    this.flashText(GAME.WIDTH / 2, GAME.HEIGHT * 0.4, 'Отмена!', '#4A7A30', 28);
+    this.flashText(GAME.PLAY_WIDTH / 2, GAME.HEIGHT * 0.4, 'Отмена!', '#4A7A30', 28);
   }
 
   /** Reusable flash text: appears, holds, fades out */
@@ -396,7 +426,7 @@ export class GameScene extends Phaser.Scene {
     else if (type === 'golden_mode') {
       this.mysteryRewards.activateGoldenMode(this.time.now);
       showText('Золотой режим!');
-      const bar = this.add.rectangle(GAME.WIDTH / 2, 4, GAME.WIDTH, 6, 0xffd700).setDepth(20);
+      const bar = this.add.rectangle(GAME.PLAY_WIDTH / 2, 4, GAME.PLAY_WIDTH, 6, 0xffd700).setDepth(20);
       this.tweens.add({ targets: bar, scaleX: 0, duration: MYSTERY.GOLDEN_DURATION_MS, onComplete: () => bar.destroy() });
     } else {
       this.score.addScore(MYSTERY.SCORE_SHOWER_BONUS);

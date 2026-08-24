@@ -48,6 +48,7 @@ export class LeaderboardScene extends Phaser.Scene {
     btn.setInteractive({ useHandCursor: true });
     this.add.text(w / 2, btnY, 'Назад', {
       fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: 168, align: 'center',
     }).setOrigin(0.5);
     btn.on('pointerover', () => btn.setFillStyle(0xe8c47a));
     btn.on('pointerout', () => btn.setFillStyle(0xede0c4));
@@ -80,11 +81,13 @@ export class LeaderboardScene extends Phaser.Scene {
 
       this.add.text(90, y + rowH / 2, e.name, {
         fontSize: '18px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: style,
+        fixedWidth: 240,
       }).setOrigin(0, 0.5);
 
       this.add.text(w - 40, y + rowH / 2, String(e.score), {
         fontSize: '18px', color: e.isPlayer ? '#D4A24C' : BRAND.TEXT_SECONDARY,
         fontFamily: BRAND.FONT_BODY, fontStyle: style,
+        fixedWidth: 100, align: 'right',
       }).setOrigin(1, 0.5);
     }
   }

@@ -38,7 +38,7 @@ export class InputHandler {
     if (!this.enabled) return;
 
     const minX = GAME.CONTAINER_WALL_THICKNESS + 10;
-    const maxX = GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS - 10;
+    const maxX = GAME.PLAY_WIDTH - GAME.CONTAINER_WALL_THICKNESS - 10;
     const x = Phaser.Math.Clamp(pointer.x, minX, maxX);
 
     this.scene.events.emit(EVENTS.DROP_REQUESTED, { x });
