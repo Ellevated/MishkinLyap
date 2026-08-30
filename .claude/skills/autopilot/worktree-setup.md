@@ -36,6 +36,7 @@ Git worktree isolation for safe parallel development.
    | BUG-   | fix/        |
    | TECH-  | tech/       |
    | ARCH-  | arch/       |
+   | GROWTH- | growth/    |
 
 6. Link .claude directory (optional, improves performance):
    ln -s "$MAIN_REPO/.claude" ".worktrees/{ID}/.claude"

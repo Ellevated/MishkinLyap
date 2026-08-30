@@ -46,6 +46,7 @@ PHASE 3: Finish
 | BUG-XXX | `fix/BUG-XXX` | `.worktrees/BUG-XXX/` |
 | TECH-XXX | `tech/TECH-XXX` | `.worktrees/TECH-XXX/` |
 | ARCH-XXX | `arch/ARCH-XXX` | `.worktrees/ARCH-XXX/` |
+| GROWTH-XXX | `growth/GROWTH-XXX` | `.worktrees/GROWTH-XXX/` |
 
 **Branch prefix by type:**
 ```bash
@@ -54,6 +55,7 @@ case $TASK_TYPE in
   BUG)  BRANCH_PREFIX="fix" ;;
   TECH) BRANCH_PREFIX="tech" ;;
   ARCH) BRANCH_PREFIX="arch" ;;
+  GROWTH) BRANCH_PREFIX="growth" ;;
   *)    BRANCH_PREFIX="task" ;;
 esac
 ```
