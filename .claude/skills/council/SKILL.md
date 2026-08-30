@@ -104,6 +104,16 @@ Create structure:
 
 ---
 
+### Cost Estimate
+
+Before launching Phase 1, inform user (non-blocking):
+
+```
+"Council review: {SPEC_ID} — 9 agents (4 opus × 2 phases + 1 opus synthesizer), est. ~$3-8. Running..."
+```
+
+---
+
 ## 3-Phase Protocol (Karpathy)
 
 ### Phase 1: PARALLEL ANALYSIS (Divergence)
@@ -135,6 +145,11 @@ Each expert — separate background subagent with isolated context.
 **Note:** `subagent_type` matches agent's `name` in frontmatter (e.g., `council-architect`), not file path (`council/architect.md`).
 
 ### Phase 1: PARALLEL ANALYSIS
+
+> **Emit all Task calls in a SINGLE assistant message** (multiple tool calls in
+> one turn). They run concurrently only when emitted together — calls in
+> separate turns serialize. Do not launch-then-wait per agent. The harness caps
+> concurrent agents and queues the rest, so emitting many at once is safe.
 
 ```yaml
 # Before launching: read .claude/rules/dependencies.md and .claude/rules/architecture.md
@@ -213,6 +228,11 @@ Each expert knows which label is theirs (to exclude from review)
 
 Each expert reads **anonymous** peer files via Read tool (NOT passed in prompt):
 
+> **Emit all Task calls in a SINGLE assistant message** (multiple tool calls in
+> one turn). They run concurrently only when emitted together — calls in
+> separate turns serialize. Do not launch-then-wait per agent. The harness caps
+> concurrent agents and queues the rest, so emitting many at once is safe.
+
 ```yaml
 # Launch cross-critique (ALL background, ALL parallel)
 Task:
@@ -274,6 +294,22 @@ Glob("{SESSION_DIR}/phase2/critique-*.md") → must find 4 files
 If < 4: launch extractor subagent for missing files (caller-writes fallback, ADR-007)
 ```
 
+### Degraded Mode
+
+If expert phases fail partially, continue with available data:
+
+| Failed Phase | Action | Impact |
+|-------------|--------|--------|
+| Phase 1: 1-2 experts fail | Continue with available analyses (min 2 required) | Reduced perspective diversity, note missing roles |
+| Phase 1: 3+ experts fail | Abort — insufficient diversity for meaningful council | Report "Council aborted — too few expert analyses" |
+| Phase 2: 1-2 critiques fail | Continue synthesis with available critiques | Note missing cross-critiques in synthesis |
+| Phase 2: All critiques fail | Skip to synthesis using Phase 1 only | Synthesis notes "No cross-critique performed" |
+| Phase 3: Synthesizer fails | Read Phase 1 + Phase 2 files directly, present raw findings | No formatted synthesis, show available expert opinions |
+
+Minimum viable council: 2 expert analyses + synthesizer.
+
+---
+
 ### Phase 3: SYNTHESIS (Chairman)
 
 Synthesizer reads ALL files via Read tool (NOT passed in prompt):
@@ -312,8 +348,8 @@ Task:
 ```markdown
 ### Research
 - Query: "telegram bot rate limiting patterns 2025"
-- Found: [Telegram Bot Best Practices](url) — use middleware approach
-- Found: [Rate Limit Strategies](url) — token bucket > sliding window
+- Found: [Telegram Bot Best Practices](https://example.com) — use middleware approach
+- Found: [Rate Limit Strategies](https://example.com) — token bucket > sliding window
 ```
 
 ## Voting & Decision
@@ -331,7 +367,9 @@ Task:
 
 ### When decision = needs_human
 
-Council MUST notify user and halt execution:
+Behavior depends on the entry point:
+
+**Autopilot escalation mode (spec exists, in_progress):**
 
 1. Set spec status to `blocked`
 2. Add `## ACTION REQUIRED` section to spec with:
@@ -339,6 +377,12 @@ Council MUST notify user and halt execution:
    - Specific questions or decisions required
 3. Output to user: "COUNCIL BLOCKED — Human decision required. See ACTION REQUIRED section in spec."
 4. Exit autopilot (do not continue to next task)
+
+**Spark Phase 4 mode (spec does NOT exist yet):**
+
+- Interactive Spark: the user is in-session — ask them directly, no status writes
+- Headless Spark: Spark exits WITHOUT creating the spec (`spec_status: not_created`)
+- ⛔ Do NOT touch spec/backlog/lifecycle status — there is nothing to block yet
 
 ## Output Format
 
@@ -363,12 +407,38 @@ dissenting_opinions:
     resolution: "Addressed in changes_required[2]"
 
 research_highlights:
-  - "[Pattern X](url) — adopted"
-  - "[Risk Y](url) — mitigated via Z"
+  - "[Pattern X](https://example.com) — adopted"
+  - "[Risk Y](https://example.com) — mitigated via Z"
 
 confidence: high | medium | low
 next_step: autopilot | spark | human
 ```
+
+## Spark Phase 4 Mode (pre-spec decision)
+
+When invoked from Spark Phase 4 DECIDE (R0/COUNCIL routing), the spec does NOT
+exist yet — council decides WHICH approach the spec will encode.
+
+**Input:**
+```yaml
+entry_point: spark_phase4
+approaches: [2-3 candidate approaches from Spark Phase 3 synthesis]
+research_files: [ai/features/research-*.md]
+context: "Why the routing matrix escalated (e.g. P1×R0)"
+```
+
+**Process:** Phase 1-2-3 as usual — experts analyze the approaches + research,
+not a spec file.
+
+**Output differences:**
+- Verdict selects/adjusts an approach; the result feeds directly back into the
+  running Spark session, which then writes the spec (status `queued`)
+- Do NOT set any spec/backlog/lifecycle status — there is no spec yet
+- `needs_human` → see "When decision = needs_human", Spark Phase 4 branch
+
+⛔ Council NEVER gates an already-written spec before implementation. A queued
+spec means decisions were already made. The only valid entry points are Spark
+Phase 4 (pre-spec) and Autopilot escalation (mid-execution).
 
 ## Escalation Mode (from Autopilot)
 
@@ -394,6 +464,50 @@ context: "Why Council is needed"
 | needs_changes | Update spec → autopilot (or council again) |
 | rejected | → spark with new approach |
 | needs_human | ⚠️ Blocker — wait for human input |
+
+## Inbox Output (Orchestrator Integration)
+
+Only useful if this project is scanned by the DLD orchestrator. Without one, `ai/inbox/`
+is a durable queue a human reads — harmless, but `{SESSION_DIR}/synthesis.md` is the real
+artifact either way.
+
+After synthesis is complete, create an inbox file for each actionable decision:
+
+```markdown
+# Council decision — {one line}
+
+**Status:** draft
+**Source:** council
+**Route:** spark
+**Context:** {SESSION_DIR}/synthesis.md
+
+---
+Council decision: {brief description of decision and recommended actions}
+Votes: {summary of votes}. Confidence: {high/medium/low}.
+Changes required: {list of changes if any}
+```
+
+**Rules:**
+- `Status: draft` — never `queued`. The orchestrator dispatches `queued` and nothing else,
+  and only the intake supervisor (Hermes) promotes a file to it. A draft therefore waits for
+  a human decision instead of firing Spark on an unreviewed brief. Any other value is inert:
+  the scan ignores it and the file is never picked up by anything.
+- Create `ai/inbox/` if it does not exist yet
+- Create inbox file ONLY if decision = approved or needs_changes
+- Do NOT create inbox file for rejected decisions
+- Do NOT create inbox file in Spark Phase 4 mode — the result feeds back into the running Spark session inline
+- One inbox file per council session (not per expert)
+- Context field links to full synthesis.md
+- Commit + push after creating inbox file — the supervisor reads the repo, not your working tree
+
+```bash
+git add ai/.council/ ai/inbox/ 2>/dev/null
+git diff --cached --quiet || git commit -m "docs: council synthesis + inbox"
+git push origin develop || echo "push failed — the inbox item is committed locally only; it will not be seen until it is pushed"
+```
+
+> Never `git add ai/lifecycle/` — the pre-commit hook rejects it; spec status has a single
+> writer and it is not this skill.
 
 ## Limits
 

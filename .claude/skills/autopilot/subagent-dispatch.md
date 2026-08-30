@@ -14,15 +14,15 @@ How to spawn and manage subagents in autopilot workflow.
 | Coder | `coder` | sonnet | PHASE 2 per task |
 | Tester | `tester` | sonnet | PHASE 2 per task |
 | Debugger | `debugger` | opus | If Tester fails (max 3) |
-| Spec Reviewer | `spec-reviewer` | sonnet | PHASE 2 per task |
-| Diary Recorder | `diary-recorder` | haiku | On problems detected |
+| ~~Diary Recorder~~ | ~~diary-recorder~~ | — | **DEPRECATED:** inline in task-loop Step 6.5 (ADR-007) |
+| Eval Judge | `eval-judge` | sonnet | LLM-as-Judge eval criteria |
 
 ### External Agents (user OR Autopilot)
 
 | Agent | subagent_type | Model | When |
 |-------|---------------|-------|------|
 | Scout | `scout` | sonnet | Research (optional) |
-| Code Quality | `review` | opus | PHASE 2 per task |
+| Code Quality | `review` | opus | `/review` only — autopilot applies the same file inline (task-loop.md Step 5) |
 
 **Model SSOT:** Defined in agent frontmatter (`agents/*.md:4`).
 
@@ -94,77 +94,28 @@ Task tool:
     attempt: {debug_attempts}
 ```
 
-### Spec Reviewer
+### Spec compliance — no dispatch
 
-```yaml
-Task tool:
-  subagent_type: "spec-reviewer"
-  prompt: |
-    feature_spec: "ai/features/{TASK_ID}*.md"
-    task: "Task {N}/{M} — <user_input>{title}</user_input>"
-    files_changed:
-      - path: "{path}"
-        action: "{created|modified}"
-```
+Checked inline by the task loop (task-loop.md Step 4). It compared a spec and a
+diff that the caller already holds, so the dispatch bought a second context to
+re-derive the first one's position. See task-loop.md § "Why those two, and not
+the others".
 
-### Code Quality Reviewer
+### Code quality — no dispatch
 
-```yaml
-Task tool:
-  subagent_type: "review"
-  prompt: |
-    TASK: <user_input>{description}</user_input>
-    FILES CHANGED: {list}
-```
+Applied inline by the task loop (task-loop.md Step 5), out of the same file the
+subagent used to load: `.claude/agents/review.md`. The dispatch was buying
+independence from the author, but the author is the coder subagent — the loop
+never held the pen. See task-loop.md § "Why those two, and not the others".
 
-### Diary Recorder (Problems)
+### Diary Recording (Inline — ADR-007)
 
-```yaml
-Task tool:
-  subagent_type: "diary-recorder"
-  prompt: |
-    task_id: "{TASK_ID}"
-    problem_type: {trigger}
-    error_message: |
-      <user_input>
-      {error}
-      </user_input>
-    files_changed: [...]
-```
+**DEPRECATED:** diary-recorder subagent removed. Autopilot writes diary entries directly.
 
-### Diary Recorder (Successes)
+See `task-loop.md` → Step 6.5 for inline diary recording instructions.
 
-```yaml
-# Success: first pass (no debug loop)
-IF tester passed AND debug_attempts == 0:
-  Task tool:
-    subagent_type: "diary-recorder"
-    prompt: |
-      task_id: "{TASK_ID}"
-      problem_type: first_pass_success
-      success_detail: "Task {N}/{M} passed on first attempt"
-      files_changed: [...]
-
-# Success: research was useful
-IF coder output references Research Source URL:
-  Task tool:
-    subagent_type: "diary-recorder"
-    prompt: |
-      task_id: "{TASK_ID}"
-      problem_type: research_useful
-      success_detail: "Query: {query}, Source: {url}, Used in: {file}"
-      files_changed: [...]
-
-# Success: diary pattern reused
-IF planner output mentions diary constraint:
-  Task tool:
-    subagent_type: "diary-recorder"
-    prompt: |
-      task_id: "{TASK_ID}"
-      problem_type: pattern_reused
-      success_detail: "Diary entry {entry_id} applied: {how}"
-      files_changed: [...]
-```
+**Why:** Subagents can't reliably write files (ADR-007, 0/36 success rate).
+Direct Write by orchestrator = guaranteed to work.
 
 ## Task Parsing Algorithm
 
@@ -209,6 +160,6 @@ Each task gets FRESH subagents — no shared context pollution!
 
 | Model | Use For | Why |
 |-------|---------|-----|
-| **Opus** | Plan, Debugger, Code Quality | Architecture decisions, root cause analysis |
-| **Sonnet** | Coder, Tester, Spec Reviewer | 90% capability, 2x speed, cost-effective |
-| **Haiku** | Diary Recorder | Fast, cheap for simple logging |
+| **Opus** | Plan, Debugger | Architecture decisions, root cause analysis |
+| **Sonnet** | Coder, Tester | 90% capability, 2x speed, cost-effective |
+| **Haiku** | ~~Diary (deprecated)~~ | Diary now inline in task-loop Step 6.5 |

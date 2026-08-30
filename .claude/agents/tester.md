@@ -16,6 +16,32 @@ files_changed: [...]
 task_scope: "FTR-XXX: description"
 ```
 
+## Test Output Wrapper
+
+For LLM-optimized output, use the test-wrapper:
+
+```bash
+node .claude/scripts/test-wrapper.mjs ./test fast
+```
+
+| Exit | Output | Meaning |
+|---|---|---|
+| 0 | `PASS: 15 tests passed (2.3s)` | Tests ran and passed |
+| 1 | `FAIL: N failure(s)` + path to full output | Tests ran and failed |
+| 2 | `TEST_COMMAND_UNAVAILABLE: <command>` | **Nothing ran.** The project ships no such test command |
+
+**Exit 2 is not a test failure.** `./test` is a per-project artifact — some repos ship
+one, this one may not — so its absence is an expected state. Fall back to the project's
+real command (`pytest`, `npm test`, `cargo test`) and report what that returns. Never
+report exit 2 as a failing suite, and never treat it as a green one.
+
+A missing command used to be reported as `FAIL: 0 failure(s)` — a failing suite with no
+failures in it — which sends the reader hunting for failures that never ran.
+
+- Reduces context noise significantly vs raw test output
+
+**When to use:** Always prefer test-wrapper in autopilot task loop. Use raw commands only for debugging.
+
 ## Smart Testing
 
 **Two approaches:**
@@ -28,13 +54,16 @@ task_scope: "FTR-XXX: description"
 
 ### Domain Tests
 
+Selection is positional — run the tests that live with the code you changed:
+
 | Changed file | Tests to run |
 |--------------|--------------|
-| `src/domains/billing/*` | `pytest src/domains/billing/ -v -n auto` |
-| `src/domains/campaigns/*` | `pytest src/domains/campaigns/ -v -n auto` |
-| `src/domains/seller/*` (not prompts/) | `pytest src/domains/seller/ -v -n auto --ignore=src/domains/seller/prompts` |
-| `src/domains/buyer/*` | `pytest src/domains/buyer/ -v -n auto` |
-| `src/domains/outreach/*` | `pytest src/domains/outreach/ -v -n auto` |
+| `src/domains/{domain}/*` | `pytest src/domains/{domain}/ -v -n auto` |
+| A domain that keeps non-code assets (prompts, fixtures) | same, with `--ignore=` on that subdirectory — it holds no tests |
+
+**Read the repository for its domain names.** A hardcoded list of domains belongs to
+whichever project it was written for; elsewhere those paths do not exist, and `pytest`
+against a missing path exits non-zero for a reason unrelated to the code under test.
 
 ### Infrastructure Tests
 
@@ -50,9 +79,9 @@ task_scope: "FTR-XXX: description"
 
 | Changed file | Tests to run |
 |--------------|--------------|
-| `src/domains/seller/prompts/*` | `./test llm -- -k "seller"` |
-| `src/domains/seller/tools/*` | `./test llm -- -k "seller"` |
-| `src/config/prompts/*` | `./test llm` |
+| `src/domains/{domain}/prompts/*` | LLM suite, filtered to that domain (`-k "{domain}"`) |
+| `src/domains/{domain}/tools/*` | LLM suite, filtered to that domain |
+| `src/config/prompts/*` | Full LLM suite |
 
 ### E2E Tests
 
@@ -62,6 +91,17 @@ task_scope: "FTR-XXX: description"
 | `src/api/telegram/buyer/handlers/*` | `pytest tests/e2e_telegram/ -v --timeout=120` |
 | `tests/integration/*` | `pytest tests/integration/ -v -n auto` |
 | `tests/e2e/*` | `pytest tests/e2e/ --e2e -v -n auto` |
+
+### Integration Tests (NO MOCKS — enforced by hook)
+
+| Changed file | Tests to run |
+|--------------|--------------|
+| `src/infra/db/*` | `pytest tests/integration/ -v` |
+| `src/domains/*/repository*` | `pytest tests/integration/ -v` |
+| `tests/integration/*` | `pytest tests/integration/ -v` |
+
+**CRITICAL:** Integration tests use real dependencies (Testcontainers).
+The pre-edit hook HARD-BLOCKS mock patterns in `tests/integration/`.
 
 ### Unit Tests (collocated)
 
@@ -90,7 +130,8 @@ task_scope: "FTR-XXX: description"
 1. Match file path against tables (top to bottom)
 2. If multiple matches → run all matched commands
 3. If `tests/contracts/` or `tests/regression/` → add ⛔ warning
-4. If no match → `./test fast` (fallback)
+4. If file touches DB/infra → also run integration tests
+5. If no match → `./test fast` (fallback)
 
 **Fallback:** File not in table → `./test fast`
 
@@ -134,6 +175,94 @@ Before reporting test failure:
    - Is immutable? (yes/no)
    - Recommendation: fix code / ask user
 
+## Mock Fidelity Audit (ADR-014)
+
+**BEFORE reporting tests as passed**, run this check on any test file that uses mocks:
+
+### Step 1: Detect mock usage
+```bash
+grep -rn "Mock\|patch\|mock\.\|MagicMock\|AsyncMock" {test_file}
+```
+
+### Step 2: For each mock found, classify it
+
+| Mock target | Verdict | Action |
+|-------------|---------|--------|
+| DB query result / row dict / ORM model | ⛔ BANNED | Report as `mock_fidelity_violation`. This MUST be an integration test with real DB. |
+| Repository method return value (dict/row shape) | ⛔ BANNED | Same — mocking row shapes hides schema drift. |
+| External HTTP API response | ✅ ALLOWED | Boundary mock, acceptable. |
+| Time / datetime.now / random | ✅ ALLOWED | Determinism mock, acceptable. |
+| File system / env vars | ✅ ALLOWED | Environment mock, acceptable. |
+| Service-layer dependency (injected interface) | ✅ ALLOWED | But return value must match real type signature. |
+
+### Step 3: Check mock return shapes
+
+For any ALLOWED mock that returns data:
+1. Find the real function/method being mocked
+2. Compare mock return value keys/types with actual return type
+3. If mock invents keys that don't exist in real code → `mock_shape_mismatch`
+
+### Output extension
+```yaml
+mock_fidelity:
+  violations: []        # or list of {file, line, mock_target, verdict}
+  shape_mismatches: []  # {file, line, mock_key, real_keys}
+```
+
+**If any `mock_fidelity_violation` found → report as `failed_in_scope`.**
+**If any `mock_shape_mismatch` found → report as warning, recommend fix.**
+
+---
+
+## Eval Criteria Testing (LLM-as-Judge)
+
+When spec has `## Eval Criteria` with `llm-judge` type entries:
+
+### Step 1: Parse eval criteria
+
+```bash
+node .claude/scripts/eval-judge.mjs {spec_path} --type llm-judge
+```
+
+Returns JSON array of criteria with `type: "llm-judge"`.
+
+### Step 2: For each llm-judge criterion
+
+1. Run the feature input through the implementation
+2. Capture actual output
+3. Dispatch eval-judge agent:
+
+```yaml
+Task tool:
+  subagent_type: "eval-judge"
+  prompt: |
+    criterion_id: "{id}"
+    input: "{input from criterion}"
+    actual_output: "{captured output}"
+    rubric: "{rubric from criterion}"
+    threshold: {threshold from criterion}
+```
+
+### Step 3: Include results in tester output
+
+```yaml
+eval_criteria_results:
+  - criterion_id: "EC-4"
+    score: 0.82
+    pass: true
+  - criterion_id: "EC-5"
+    score: 0.45
+    pass: false
+```
+
+If any llm-judge criterion fails → report as `failed_in_scope`.
+
+**When to skip:** If `eval-judge.mjs` returns empty array (no llm-judge criteria), skip this section entirely.
+
 ## Limits
 - `./test fast`: max 5 fails
 - `./test llm`: max 2 fails
+
+---
+
+@.claude/agents/_shared/output-conventions.md
