@@ -30,7 +30,7 @@
 | FTR-022 | Share Screenshot | done | P1 | [FTR-022](features/FTR-022-2026-03-05-share-screenshot.md) |
 | FTR-023 | done | done | P1 | [FTR-023](features/FTR-023-2026-03-05-lucky-spin.md) |
 | FTR-024 | done | done | P1 | [FTR-024](features/FTR-024-2026-03-05-seasonal-events.md) |
-| FTR-025 | Adaptive Music | done | P2 | [FTR-025](features/FTR-025-2026-03-05-adaptive-music.md) |
+| FTR-025 | done | done | P2 | [FTR-025](features/FTR-025-2026-03-05-adaptive-music.md) |
 | FTR-026 | done | done | P2 | [FTR-026](features/FTR-026-2026-03-05-cosmetic-skins.md) |
 | FTR-027 | Onboarding & Tutorial | done | P0 | [FTR-027](features/FTR-027-2026-03-05-onboarding-tutorial.md) |
 | FTR-028 | done | done | P1 | [FTR-028](features/FTR-028-2026-03-05-audio-enhancement.md) |
