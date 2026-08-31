@@ -17,7 +17,7 @@
 | FTR-009 | Visual Juice (Squash/Stretch, Floating Scores) | done | P0 | [FTR-009](features/FTR-009-2026-03-05-visual-juice.md) |
 | FTR-010 | Combo System | done | P0 | [FTR-010](features/FTR-010-2026-03-05-combo-system.md) |
 | FTR-011 | Game Feel & Feedback | done | P0 | [FTR-011](features/FTR-011-2026-03-05-game-feel.md) |
-| FTR-012 | Bestiary — Collection Screen | done | P0 | [FTR-012](features/FTR-012-2026-03-05-bestiary.md) |
+| FTR-012 | done | done | P0 | [FTR-012](features/FTR-012-2026-03-05-bestiary.md) |
 | FTR-013 | Daily Streaks & Rewards | done | P0 | [FTR-013](features/FTR-013-2026-03-05-daily-streaks.md) |
 | FTR-014 | done | done | P0 | [FTR-014](features/FTR-014-2026-03-05-rewarded-ads.md) |
 | FTR-015 | Leaderboard | done | P0 | [FTR-015](features/FTR-015-2026-03-05-leaderboard.md) |
