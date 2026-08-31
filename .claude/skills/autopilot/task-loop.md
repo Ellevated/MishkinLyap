@@ -157,13 +157,17 @@ Code Quality status?
 
 ```bash
 git add {files_changed}
-git commit -m "{type}({scope}): {description}"
+git commit -m "{type}({SPEC_ID}): {description}"
 ```
 
-**Commit message format:**
-- `feat(autopilot): add task-loop decision trees`
-- `fix(review): add TODO/FIXME check`
-- `docs(diary): create escaped-defects template`
+**Commit message format** — the spec ID goes in the scope, not a module name.
+The callback gate matches the subject line only: a `feat(agents): …` commit is
+invisible to it, the implementation is never found, and the spec comes back
+`blocked / no_merged_implementation`. See `.claude/agents/coder.md`
+§ Commit Format for the exact contract.
+- `feat(FTR-1076): add task-loop decision trees`
+- `fix(BUG-439): add TODO/FIXME check`
+- `docs(TECH-214): create escaped-defects template`
 
 **If commit fails:**
 1. Check error message (pre-commit hook? disk space? locked repo?)
