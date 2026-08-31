@@ -13,7 +13,7 @@
 | TECH-007 | done | done | P1 | [TECH-007](features/TECH-007-2026-03-04-build-pipeline.md) |
 | BUG-008 | done | done | P0 | [BUG-008](features/BUG-008-2026-03-05-gameplay-bugfix.md) |
 | TECH-009 | done | done | P1 | [TECH-009](features/TECH-009-2026-03-05-playwright-tests.md) |
-| FTR-008 | Sound System Foundation | done | P0 | [FTR-008](features/FTR-008-2026-03-05-sound-system.md) |
+| FTR-008 | done | done | P0 | [FTR-008](features/FTR-008-2026-03-05-sound-system.md) |
 | FTR-009 | done | done | P0 | [FTR-009](features/FTR-009-2026-03-05-visual-juice.md) |
 | FTR-010 | done | done | P0 | [FTR-010](features/FTR-010-2026-03-05-combo-system.md) |
 | FTR-011 | done | done | P0 | [FTR-011](features/FTR-011-2026-03-05-game-feel.md) |
