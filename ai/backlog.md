@@ -28,7 +28,7 @@
 | FTR-020 | done | done | P0 | [FTR-020](features/FTR-020-2026-03-05-mystery-rewards.md) |
 | FTR-021 | Idle Animations | done | P1 | [FTR-021](features/FTR-021-2026-03-05-idle-animations.md) |
 | FTR-022 | Share Screenshot | done | P1 | [FTR-022](features/FTR-022-2026-03-05-share-screenshot.md) |
-| FTR-023 | Lucky Spin / Колесо Удачи | done | P1 | [FTR-023](features/FTR-023-2026-03-05-lucky-spin.md) |
+| FTR-023 | done | done | P1 | [FTR-023](features/FTR-023-2026-03-05-lucky-spin.md) |
 | FTR-024 | done | done | P1 | [FTR-024](features/FTR-024-2026-03-05-seasonal-events.md) |
 | FTR-025 | Adaptive Music | done | P2 | [FTR-025](features/FTR-025-2026-03-05-adaptive-music.md) |
 | FTR-026 | Cosmetic Skins | done | P2 | [FTR-026](features/FTR-026-2026-03-05-cosmetic-skins.md) |
