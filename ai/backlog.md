@@ -20,7 +20,7 @@
 | FTR-012 | done | done | P0 | [FTR-012](features/FTR-012-2026-03-05-bestiary.md) |
 | FTR-013 | done | done | P0 | [FTR-013](features/FTR-013-2026-03-05-daily-streaks.md) |
 | FTR-014 | done | done | P0 | [FTR-014](features/FTR-014-2026-03-05-rewarded-ads.md) |
-| FTR-015 | Leaderboard | done | P0 | [FTR-015](features/FTR-015-2026-03-05-leaderboard.md) |
+| FTR-015 | done | done | P0 | [FTR-015](features/FTR-015-2026-03-05-leaderboard.md) |
 | FTR-016 | done | done | P0 | [FTR-016](features/FTR-016-2026-03-05-daily-missions.md) |
 | FTR-017 | Milestone Achievements | done | P0 | [FTR-017](features/FTR-017-2026-03-05-achievements.md) |
 | FTR-018 | done | done | P0 | [FTR-018](features/FTR-018-2026-03-05-game-modes.md) |
