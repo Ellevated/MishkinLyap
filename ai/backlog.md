@@ -37,7 +37,7 @@
 | FTR-029 | Visual Juice Batch 2 (Micro-Juicing) | done | P1 | [FTR-029](features/FTR-029-2026-03-05-visual-juice-batch2.md) |
 | FTR-030 | Combo Fever Mode | done | P1 | [FTR-030](features/FTR-030-2026-03-05-combo-fever.md) |
 | FTR-031 | done | done | P1 | [FTR-031](features/FTR-031-2026-03-05-player-stats-investment.md) |
-| FTR-032 | Visual & Audio Polish | done | P0 | [FTR-032](features/FTR-032-2026-03-05-visual-audio-polish.md) |
+| FTR-032 | done | done | P0 | [FTR-032](features/FTR-032-2026-03-05-visual-audio-polish.md) |
 | BUG-033 | done | done | P0 | [BUG-033](features/BUG-033-2026-03-05-ui-polish-batch.md) |
 | FTR-034 | done | done | P1 | [FTR-034](features/FTR-034-2026-03-05-menu-title-ingame-ux.md) |
 
