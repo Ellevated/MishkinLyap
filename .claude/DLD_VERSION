@@ -1,5 +1,5 @@
 {
-  "synced_from": "22eb725baeafd05cefea71eb35110e8f33b86ac6",
+  "synced_from": "c590185b3067749fc744b906ab1fb89fc7ff6501",
   "manifest_sha256": "56d566b50f2bde1e2c8e3a828e65fe23dee8af2792bc20b9ff585db71ea6f762",
   "files": 140,
   "_comment": "Written by scripts/check-fleet-drift.py --apply. Never edit by hand: the digest is recomputed from the files on disk, so a hand-edited marker reports STALE rather than the version it claims."
