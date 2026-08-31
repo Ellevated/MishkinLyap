@@ -27,7 +27,7 @@
 | FTR-019 | done | done | P0 | [FTR-019](features/FTR-019-2026-03-05-undo.md) |
 | FTR-020 | done | done | P0 | [FTR-020](features/FTR-020-2026-03-05-mystery-rewards.md) |
 | FTR-021 | done | done | P1 | [FTR-021](features/FTR-021-2026-03-05-idle-animations.md) |
-| FTR-022 | Share Screenshot | done | P1 | [FTR-022](features/FTR-022-2026-03-05-share-screenshot.md) |
+| FTR-022 | done | done | P1 | [FTR-022](features/FTR-022-2026-03-05-share-screenshot.md) |
 | FTR-023 | done | done | P1 | [FTR-023](features/FTR-023-2026-03-05-lucky-spin.md) |
 | FTR-024 | done | done | P1 | [FTR-024](features/FTR-024-2026-03-05-seasonal-events.md) |
 | FTR-025 | done | done | P2 | [FTR-025](features/FTR-025-2026-03-05-adaptive-music.md) |
