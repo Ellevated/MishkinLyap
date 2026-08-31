@@ -5,7 +5,7 @@
 | ID | Task | Status | Priority | Feature.md |
 |----|------|--------|----------|------------|
 | FTR-001 | Project Scaffold + Config | done | P0 | [FTR-001](features/FTR-001-2026-03-04-project-scaffold.md) |
-| FTR-002 | SDK Platform Bridge + Boot Sequence | done | P0 | [FTR-002](features/FTR-002-2026-03-04-sdk-platform-bridge.md) |
+| FTR-002 | done | done | P0 | [FTR-002](features/FTR-002-2026-03-04-sdk-platform-bridge.md) |
 | FTR-003 | done | done | P0 | [FTR-003](features/FTR-003-2026-03-04-animal-physics.md) |
 | FTR-004 | done | done | P0 | [FTR-004](features/FTR-004-2026-03-04-game-mechanics.md) |
 | FTR-005 | Scenes & Game Loop | done | P0 | [FTR-005](features/FTR-005-2026-03-04-scenes-gameloop.md) |
