@@ -16,7 +16,7 @@
 | FTR-008 | Sound System Foundation | done | P0 | [FTR-008](features/FTR-008-2026-03-05-sound-system.md) |
 | FTR-009 | done | done | P0 | [FTR-009](features/FTR-009-2026-03-05-visual-juice.md) |
 | FTR-010 | Combo System | done | P0 | [FTR-010](features/FTR-010-2026-03-05-combo-system.md) |
-| FTR-011 | Game Feel & Feedback | done | P0 | [FTR-011](features/FTR-011-2026-03-05-game-feel.md) |
+| FTR-011 | done | done | P0 | [FTR-011](features/FTR-011-2026-03-05-game-feel.md) |
 | FTR-012 | done | done | P0 | [FTR-012](features/FTR-012-2026-03-05-bestiary.md) |
 | FTR-013 | done | done | P0 | [FTR-013](features/FTR-013-2026-03-05-daily-streaks.md) |
 | FTR-014 | done | done | P0 | [FTR-014](features/FTR-014-2026-03-05-rewarded-ads.md) |
