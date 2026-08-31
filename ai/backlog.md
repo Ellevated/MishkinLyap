@@ -9,7 +9,7 @@
 | FTR-003 | done | done | P0 | [FTR-003](features/FTR-003-2026-03-04-animal-physics.md) |
 | FTR-004 | done | done | P0 | [FTR-004](features/FTR-004-2026-03-04-game-mechanics.md) |
 | FTR-005 | done | done | P0 | [FTR-005](features/FTR-005-2026-03-04-scenes-gameloop.md) |
-| FTR-006 | Assets & Visual Polish | done | P1 | [FTR-006](features/FTR-006-2026-03-04-assets-polish.md) |
+| FTR-006 | done | done | P1 | [FTR-006](features/FTR-006-2026-03-04-assets-polish.md) |
 | TECH-007 | done | done | P1 | [TECH-007](features/TECH-007-2026-03-04-build-pipeline.md) |
 | BUG-008 | done | done | P0 | [BUG-008](features/BUG-008-2026-03-05-gameplay-bugfix.md) |
 | TECH-009 | done | done | P1 | [TECH-009](features/TECH-009-2026-03-05-playwright-tests.md) |
