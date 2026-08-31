@@ -12,7 +12,7 @@
 | FTR-006 | Assets & Visual Polish | done | P1 | [FTR-006](features/FTR-006-2026-03-04-assets-polish.md) |
 | TECH-007 | done | done | P1 | [TECH-007](features/TECH-007-2026-03-04-build-pipeline.md) |
 | BUG-008 | Critical Gameplay Bugfix Batch (11 bugs) | done | P0 | [BUG-008](features/BUG-008-2026-03-05-gameplay-bugfix.md) |
-| TECH-009 | Playwright Visual Test Suite | done | P1 | [TECH-009](features/TECH-009-2026-03-05-playwright-tests.md) |
+| TECH-009 | done | done | P1 | [TECH-009](features/TECH-009-2026-03-05-playwright-tests.md) |
 | FTR-008 | Sound System Foundation | done | P0 | [FTR-008](features/FTR-008-2026-03-05-sound-system.md) |
 | FTR-009 | done | done | P0 | [FTR-009](features/FTR-009-2026-03-05-visual-juice.md) |
 | FTR-010 | Combo System | done | P0 | [FTR-010](features/FTR-010-2026-03-05-combo-system.md) |
