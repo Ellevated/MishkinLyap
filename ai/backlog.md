@@ -7,7 +7,7 @@
 | FTR-001 | Project Scaffold + Config | done | P0 | [FTR-001](features/FTR-001-2026-03-04-project-scaffold.md) |
 | FTR-002 | SDK Platform Bridge + Boot Sequence | done | P0 | [FTR-002](features/FTR-002-2026-03-04-sdk-platform-bridge.md) |
 | FTR-003 | done | done | P0 | [FTR-003](features/FTR-003-2026-03-04-animal-physics.md) |
-| FTR-004 | Core Game Mechanics | done | P0 | [FTR-004](features/FTR-004-2026-03-04-game-mechanics.md) |
+| FTR-004 | done | done | P0 | [FTR-004](features/FTR-004-2026-03-04-game-mechanics.md) |
 | FTR-005 | Scenes & Game Loop | done | P0 | [FTR-005](features/FTR-005-2026-03-04-scenes-gameloop.md) |
 | FTR-006 | Assets & Visual Polish | done | P1 | [FTR-006](features/FTR-006-2026-03-04-assets-polish.md) |
 | TECH-007 | done | done | P1 | [TECH-007](features/TECH-007-2026-03-04-build-pipeline.md) |
