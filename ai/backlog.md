@@ -33,7 +33,7 @@
 | FTR-025 | Adaptive Music | done | P2 | [FTR-025](features/FTR-025-2026-03-05-adaptive-music.md) |
 | FTR-026 | Cosmetic Skins | done | P2 | [FTR-026](features/FTR-026-2026-03-05-cosmetic-skins.md) |
 | FTR-027 | Onboarding & Tutorial | done | P0 | [FTR-027](features/FTR-027-2026-03-05-onboarding-tutorial.md) |
-| FTR-028 | Audio Enhancement (Sound Psychology) | done | P1 | [FTR-028](features/FTR-028-2026-03-05-audio-enhancement.md) |
+| FTR-028 | done | done | P1 | [FTR-028](features/FTR-028-2026-03-05-audio-enhancement.md) |
 | FTR-029 | Visual Juice Batch 2 (Micro-Juicing) | done | P1 | [FTR-029](features/FTR-029-2026-03-05-visual-juice-batch2.md) |
 | FTR-030 | Combo Fever Mode | done | P1 | [FTR-030](features/FTR-030-2026-03-05-combo-fever.md) |
 | FTR-031 | done | done | P1 | [FTR-031](features/FTR-031-2026-03-05-player-stats-investment.md) |
