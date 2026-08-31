@@ -22,7 +22,7 @@
 | FTR-014 | done | done | P0 | [FTR-014](features/FTR-014-2026-03-05-rewarded-ads.md) |
 | FTR-015 | done | done | P0 | [FTR-015](features/FTR-015-2026-03-05-leaderboard.md) |
 | FTR-016 | done | done | P0 | [FTR-016](features/FTR-016-2026-03-05-daily-missions.md) |
-| FTR-017 | Milestone Achievements | done | P0 | [FTR-017](features/FTR-017-2026-03-05-achievements.md) |
+| FTR-017 | done | done | P0 | [FTR-017](features/FTR-017-2026-03-05-achievements.md) |
 | FTR-018 | done | done | P0 | [FTR-018](features/FTR-018-2026-03-05-game-modes.md) |
 | FTR-019 | done | done | P0 | [FTR-019](features/FTR-019-2026-03-05-undo.md) |
 | FTR-020 | done | done | P0 | [FTR-020](features/FTR-020-2026-03-05-mystery-rewards.md) |
