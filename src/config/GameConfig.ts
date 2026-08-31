@@ -14,17 +14,19 @@ export interface AnimalConfig {
   readonly score: number;
   readonly key: string;
   readonly color: number;
+  /** Per-sprite scale multiplier (overrides VISUAL.SPRITE_OVERFLOW) */
+  readonly spriteScale: number;
 }
 
 export const ANIMALS: readonly AnimalConfig[] = [
-  { tier: 1, name: 'hamster', nameRu: 'Хомячок', radius: 18, score: 2,  key: 'hamster', color: 0xf0b832 },
-  { tier: 2, name: 'bunny',   nameRu: 'Зайчик',  radius: 24, score: 6,  key: 'bunny',   color: 0x8bafc7 },
-  { tier: 3, name: 'kitten',  nameRu: 'Котёнок',  radius: 32, score: 12, key: 'kitten',  color: 0xe88c28 },
-  { tier: 4, name: 'cat',     nameRu: 'Кошка',    radius: 40, score: 20, key: 'cat',     color: 0x9b6ba0 },
-  { tier: 5, name: 'puppy',   nameRu: 'Собачка',  radius: 50, score: 30, key: 'puppy',   color: 0xc17a56 },
-  { tier: 6, name: 'fox',     nameRu: 'Лисичка',  radius: 60, score: 42, key: 'fox',     color: 0xc03228 },
-  { tier: 7, name: 'panda',   nameRu: 'Панда',    radius: 72, score: 56, key: 'panda',   color: 0x3d2b1f },
-  { tier: 8, name: 'bear',    nameRu: 'Мишка',    radius: 85, score: 72, key: 'bear',    color: 0x5a8c3c },
+  { tier: 1, name: 'chick',    nameRu: 'Цыплёнок', radius: 18, score: 2,  key: 'chick',    color: 0xf0b832, spriteScale: 1.3 },
+  { tier: 2, name: 'hedgehog', nameRu: 'Ёжик',     radius: 24, score: 6,  key: 'hedgehog', color: 0x8b6040, spriteScale: 1.6 },
+  { tier: 3, name: 'kitten',   nameRu: 'Котёнок',   radius: 32, score: 12, key: 'kitten',   color: 0xe88c28, spriteScale: 1.15 },
+  { tier: 4, name: 'puppy',    nameRu: 'Собачка',   radius: 40, score: 20, key: 'puppy',    color: 0xc17a56, spriteScale: 1.55 },
+  { tier: 5, name: 'bunny',    nameRu: 'Зайчик',    radius: 50, score: 30, key: 'bunny',    color: 0x8bafc7, spriteScale: 1.3 },
+  { tier: 6, name: 'fox',      nameRu: 'Лисичка',   radius: 60, score: 42, key: 'fox',      color: 0xc03228, spriteScale: 1.35 },
+  { tier: 7, name: 'wolf',     nameRu: 'Волчок',    radius: 72, score: 56, key: 'wolf',     color: 0x5a5a6a, spriteScale: 1.15 },
+  { tier: 8, name: 'bear',     nameRu: 'Мишка',     radius: 85, score: 72, key: 'bear',     color: 0x8b5e3c, spriteScale: 1.45 },
 ] as const;
 
 /** Brand colors from brandbook */
@@ -51,8 +53,10 @@ export const PHYSICS = {
 } as const;
 
 export const GAME = {
-  WIDTH: 480,
+  WIDTH: 560,
   HEIGHT: 854,
+  /** Width of the playable container (walls, drop zone, physics) */
+  PLAY_WIDTH: 480,
   SPAWN_MAX_TIER: 5,
   DROP_COOLDOWN_MS: 500,
   GAME_OVER_LINE_Y: 160,
@@ -297,7 +301,7 @@ export const MISSION_POOL: readonly MissionTemplate[] = [
   { id: 'score_8000', text: 'Наберите {target} очков',     type: 'score',        target: 8000 },
   { id: 'games_3',    text: 'Сыграйте {target} раунда',   type: 'games',        target: 3 },
   { id: 'games_5',    text: 'Сыграйте {target} раундов',  type: 'games',        target: 5 },
-  { id: 'tier_cat',   text: 'Создайте кота (тир 4)',      type: 'tier_created', target: 4 },
+  { id: 'tier_puppy', text: 'Создайте собачку (тир 4)',    type: 'tier_created', target: 4 },
   { id: 'tier_fox',   text: 'Создайте лису (тир 6)',      type: 'tier_created', target: 6 },
   { id: 'combo_3',    text: 'Соберите комбо x{target}',   type: 'combo',        target: 3 },
   { id: 'combo_5',    text: 'Соберите комбо x{target}',   type: 'combo',        target: 5 },
@@ -342,12 +346,12 @@ export interface AchievementDef {
 }
 
 export const ACHIEVEMENTS: readonly AchievementDef[] = [
-  { id: 'first_merge',  name: 'Первый мердж',   description: 'Сделайте первое слияние',    icon: '🐹', check: s => s.totalMerges >= 1, progress: s => s.totalMerges, target: 1 },
+  { id: 'first_merge',  name: 'Первый мердж',   description: 'Сделайте первое слияние',    icon: '🐥', check: s => s.totalMerges >= 1, progress: s => s.totalMerges, target: 1 },
   { id: 'merges_50',    name: 'Мерджер',         description: 'Сделайте 50 слияний',        icon: '🔄', check: s => s.totalMerges >= 50, progress: s => s.totalMerges, target: 50 },
   { id: 'merges_500',   name: 'Мердж-мастер',    description: 'Сделайте 500 слияний',       icon: '⭐', check: s => s.totalMerges >= 500, progress: s => s.totalMerges, target: 500 },
-  { id: 'create_cat',   name: 'Котик!',          description: 'Создайте кота (тир 4)',      icon: '🐱', check: s => s.highestTier >= 4, progress: s => s.highestTier, target: 4 },
+  { id: 'create_puppy', name: 'Собачка!',        description: 'Создайте собачку (тир 4)',   icon: '🐶', check: s => s.highestTier >= 4, progress: s => s.highestTier, target: 4 },
   { id: 'create_fox',   name: 'Лисичка!',        description: 'Создайте лису (тир 6)',      icon: '🦊', check: s => s.highestTier >= 6, progress: s => s.highestTier, target: 6 },
-  { id: 'create_panda', name: 'Панда!',          description: 'Создайте панду (тир 7)',     icon: '🐼', check: s => s.highestTier >= 7, progress: s => s.highestTier, target: 7 },
+  { id: 'create_wolf',  name: 'Волчок!',          description: 'Создайте волка (тир 7)',     icon: '🐺', check: s => s.highestTier >= 7, progress: s => s.highestTier, target: 7 },
   { id: 'create_bear',  name: 'МЕДВЕДЬ!',        description: 'Создайте медведя (тир 8)',   icon: '🐻', check: s => s.highestTier >= 8, progress: s => s.highestTier, target: 8 },
   { id: 'score_5k',     name: 'Пять тысяч',      description: 'Наберите 5000 за карьеру',   icon: '💫', check: s => s.totalScore >= 5000, progress: s => s.totalScore, target: 5000 },
   { id: 'score_50k',    name: 'Полтинник',        description: 'Наберите 50000 за карьеру',  icon: '🏆', check: s => s.totalScore >= 50000, progress: s => s.totalScore, target: 50000 },

@@ -36,7 +36,7 @@ export class Animal extends Phaser.GameObjects.Container {
     if (scene.textures.exists(this.config.key)) {
       this.sprite = scene.add.image(0, 0, this.config.key);
       const maxDim = Math.max(this.sprite.frame.width, this.sprite.frame.height);
-      this.baseFactor = ((radius * 2) / maxDim) * VISUAL.SPRITE_OVERFLOW;
+      this.baseFactor = ((radius * 2) / maxDim) * this.config.spriteScale;
       this.sprite.setScale(this.baseFactor);
       this.add(this.sprite);
     } else {

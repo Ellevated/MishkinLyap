@@ -20,7 +20,7 @@ interface GameOverData {
 const WARM = ['Отличная игра!', 'Так держать!', 'Вы молодец!', 'Браво!'];
 const pick = (a: string[]) => a[Math.floor(Math.random() * a.length)];
 const txt = (s: Phaser.Scene, x: number, y: number, t: string, sz: string, c: string, fam: string = BRAND.FONT_BODY, style = '') =>
-  s.add.text(x, y, t, { fontSize: sz, color: c, fontFamily: fam, fontStyle: style }).setOrigin(0.5);
+  s.add.text(x, y, t, { fontSize: sz, color: c, fontFamily: fam, fontStyle: style, fixedWidth: 300, align: 'center' }).setOrigin(0.5);
 
 export class GameOverScene extends Phaser.Scene {
   constructor() { super('GameOver'); }
@@ -36,6 +36,12 @@ export class GameOverScene extends Phaser.Scene {
     this.add.rectangle(w / 2, panelY + panelH / 2 - 30, 320, panelH, 0xf0e5ca).setStrokeStyle(3, 0xd6c6a9);
 
     let y = panelY - 15;
+    // Decorative vine frame with animals as title header
+    if (this.textures.exists('gameover_frame')) {
+      const frame = this.add.image(w / 2, y, 'gameover_frame').setOrigin(0.5);
+      const frameScale = Math.min(300 / frame.width, 80 / frame.height);
+      frame.setScale(frameScale);
+    }
     txt(this, w / 2, y, 'Ой, ляп!', '36px', BRAND.TEXT_INK, BRAND.FONT_DISPLAY);
     y += 50;
 
@@ -124,9 +130,13 @@ export class GameOverScene extends Phaser.Scene {
   }
 
   private btn(x: number, y: number, label: string, color: number, onClick: () => void): Phaser.GameObjects.Rectangle {
-    const b = this.add.rectangle(x, y, 220, 52, color).setStrokeStyle(2, 0x8a6420);
+    const bw = 220, pad = 16;
+    const b = this.add.rectangle(x, y, bw, 52, color).setStrokeStyle(2, 0x8a6420);
     b.setInteractive({ useHandCursor: true });
-    txt(this, x, y, label, '20px', BRAND.TEXT_INK, BRAND.FONT_BODY, 'bold');
+    this.add.text(x, y, label, {
+      fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: bw - pad * 2, align: 'center',
+    }).setOrigin(0.5);
     b.on('pointerover', () => b.setFillStyle(0xe8c47a));
     b.on('pointerout', () => b.setFillStyle(color));
     b.on('pointerdown', () => b.setScale(0.95));

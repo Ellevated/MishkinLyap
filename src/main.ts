@@ -34,6 +34,7 @@ window.onunhandledrejection = (event) => {
 };
 
 function createBridge(): IPlatformBridge {
+  if (__DEV__) return new MockPlatform();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (typeof (window as any).YaGames !== 'undefined') {
     return new YandexPlatform();
@@ -42,8 +43,19 @@ function createBridge(): IPlatformBridge {
 }
 
 async function boot(): Promise<void> {
-  const bridge = createBridge();
-  await bridge.init();
+  let bridge = createBridge();
+  try {
+    await Promise.race([
+      bridge.init(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('SDK init timeout')), 5000),
+      ),
+    ]);
+  } catch (e) {
+    logError('bridge.init failed, falling back to mock', e);
+    bridge = new MockPlatform();
+    await bridge.init();
+  }
 
   const debugParam = new URLSearchParams(window.location.search).get('debug');
   const showDebug = debugParam !== null ? debugParam === '1' : __DEV__;

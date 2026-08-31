@@ -17,9 +17,32 @@ import { SpinRewardManager } from '../game/SpinRewardManager';
 import { SkinManager } from '../game/SkinManager';
 import type { SeasonManager } from '../game/SeasonManager';
 
-const btn = (s: Phaser.Scene, x: number, y: number, w: number, h: number, color: number, label: string, onClick: () => void) => {
+const btn = (
+  s: Phaser.Scene, x: number, y: number, w: number, h: number,
+  color: number, label: string, onClick: () => void,
+  opts?: { fontSize?: string; icon?: string },
+) => {
+  const fs = opts?.fontSize ?? '20px';
+  const pad = 16; // horizontal padding inside button
   const r = s.add.rectangle(x, y, w, h, color).setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
-  s.add.text(x, y, label, { fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold' }).setOrigin(0.5);
+
+  if (opts?.icon) {
+    // Icon-left + text-center layout: icon fixed left, label fills remaining space
+    const iconSize = parseInt(fs);
+    const iconX = x - w / 2 + pad + iconSize / 2;
+    s.add.text(iconX, y, opts.icon, { fontSize: fs }).setOrigin(0.5);
+    const textX = x + pad / 2; // shift text slightly right to account for icon
+    s.add.text(textX, y, label, {
+      fontSize: fs, color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: w - pad * 2 - iconSize - 4, align: 'center',
+    }).setOrigin(0.5);
+  } else {
+    s.add.text(x, y, label, {
+      fontSize: fs, color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: w - pad * 2, align: 'center',
+    }).setOrigin(0.5);
+  }
+
   r.on('pointerover', () => r.setFillStyle(0xe8c47a));
   r.on('pointerout', () => r.setFillStyle(color));
   r.on('pointerdown', () => r.setScale(0.95));
@@ -60,14 +83,21 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(1, 0);
     }
 
-    // === Mascot + Title (zone 10-35%) ===
-    this.add.image(w / 2, h * 0.12, 'mascot').setDisplaySize(120, 120);
-    this.add.text(w / 2, h * 0.25, 'Мишкин\nЛяп', {
-      fontSize: '48px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY, align: 'center',
-    }).setOrigin(0.5);
+    // === Title (sprite or fallback text) ===
+    if (this.textures.exists('title')) {
+      const titleImg = this.add.image(w / 2, h * 0.14, 'title').setOrigin(0.5);
+      const maxTitleW = w * 0.6;
+      const titleScale = Math.min(maxTitleW / titleImg.width, 1);
+      titleImg.setScale(titleScale);
+    } else {
+      this.add.image(w / 2, h * 0.10, 'mascot').setDisplaySize(80, 80);
+      this.add.text(w / 2, h * 0.20, 'Мишкин Ляп', {
+        fontSize: '36px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_DISPLAY,
+      }).setOrigin(0.5);
+    }
 
-    // === Dynamic Y accumulator from zone 35% ===
-    let y = h * 0.35;
+    // === Dynamic Y accumulator ===
+    let y = h * 0.27;
 
     // Season event banner (optional zone)
     if (this.seasonMgr?.isEventActive()) {
@@ -127,14 +157,14 @@ export class MenuScene extends Phaser.Scene {
     // === Visual separator between play and meta ===
     y += 20;
 
-    // === Meta buttons (2x2 + 1 grid) ===
-    const gridCols = 2, gridGapX = 12, gridGapY = 12;
-    const metaBtnW = 104, metaBtnH = 44;
-    const metaItems: { label: string; action: () => void; highlight?: boolean }[] = [
-      { label: '🐾 Зверята', action: () => this.scene.start('Bestiary') },
-      { label: '🏆 Рейтинг', action: () => this.scene.start('Leaderboard', { returnTo: 'Menu' }) },
-      { label: '📋 Задания', action: () => this.scene.start('Missions') },
-      { label: '🎖️ Награды', action: () => this.scene.start('Achievements') },
+    // === Meta buttons (2x2 grid, text-only — emoji render badly in canvas) ===
+    const gridCols = 2, gridGapX = 10, gridGapY = 10;
+    const metaBtnW = 136, metaBtnH = 44;
+    const metaItems: { label: string; action: () => void }[] = [
+      { label: 'Зверята', action: () => this.scene.start('Bestiary') },
+      { label: 'Рейтинг', action: () => this.scene.start('Leaderboard', { returnTo: 'Menu' }) },
+      { label: 'Задания', action: () => this.scene.start('Missions') },
+      { label: 'Награды', action: () => this.scene.start('Achievements') },
     ];
 
     const spinMgr = new SpinRewardManager();
@@ -144,12 +174,13 @@ export class MenuScene extends Phaser.Scene {
       const col = i % gridCols, row = Math.floor(i / gridCols);
       const mx = w / 2 + (col - 0.5) * (metaBtnW + gridGapX);
       const my = y + row * (metaBtnH + gridGapY);
-      btn(this, mx, my, metaBtnW, metaBtnH, 0xede0c4, metaItems[i].label, metaItems[i].action);
+      btn(this, mx, my, metaBtnW, metaBtnH, 0xede0c4, metaItems[i].label, metaItems[i].action,
+        { fontSize: '18px' });
     }
     y += Math.ceil(metaItems.length / gridCols) * (metaBtnH + gridGapY) + 8;
 
     // Spin button (centered, full width)
-    const spinBtn = btn(this, w / 2, y, 220, 44, 0xede0c4, spinAvail ? '🎡 Колесо ✨' : '🎡 Колесо', () => this.scene.start('LuckySpin'));
+    const spinBtn = btn(this, w / 2, y, 220, 44, 0xede0c4, spinAvail ? 'Колесо удачи' : 'Колесо', () => this.scene.start('LuckySpin'));
     if (spinAvail) this.tweens.add({ targets: spinBtn, scaleX: 1.03, scaleY: 1.03, duration: 600, yoyo: true, repeat: -1 });
 
     if (checkIn.isNewDay) this.showStreakPopup(w, h, checkIn);

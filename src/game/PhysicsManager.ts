@@ -19,7 +19,7 @@ export class PhysicsManager {
 
   /** Create container walls: left, right, bottom as static rectangles */
   createWalls(): void {
-    const { WIDTH, HEIGHT, CONTAINER_WALL_THICKNESS, CONTAINER_TOP_Y } = GAME;
+    const { PLAY_WIDTH, HEIGHT, CONTAINER_WALL_THICKNESS, CONTAINER_TOP_Y } = GAME;
     const wallHeight = HEIGHT - CONTAINER_TOP_Y;
     const halfThick = CONTAINER_WALL_THICKNESS / 2;
 
@@ -34,7 +34,7 @@ export class PhysicsManager {
 
     // Right wall
     this.scene.matter.add.rectangle(
-      WIDTH - halfThick,
+      PLAY_WIDTH - halfThick,
       CONTAINER_TOP_Y + wallHeight / 2,
       CONTAINER_WALL_THICKNESS,
       wallHeight,
@@ -43,9 +43,9 @@ export class PhysicsManager {
 
     // Bottom wall
     this.scene.matter.add.rectangle(
-      WIDTH / 2,
+      PLAY_WIDTH / 2,
       HEIGHT - halfThick,
-      WIDTH,
+      PLAY_WIDTH,
       CONTAINER_WALL_THICKNESS,
       { isStatic: true, label: 'wall', friction: PHYSICS.FRICTION },
     );
@@ -72,7 +72,7 @@ export class PhysicsManager {
   getContainerBounds(): { left: number; right: number; top: number; bottom: number } {
     return {
       left: GAME.CONTAINER_WALL_THICKNESS,
-      right: GAME.WIDTH - GAME.CONTAINER_WALL_THICKNESS,
+      right: GAME.PLAY_WIDTH - GAME.CONTAINER_WALL_THICKNESS,
       top: GAME.CONTAINER_TOP_Y,
       bottom: GAME.HEIGHT - GAME.CONTAINER_WALL_THICKNESS,
     };

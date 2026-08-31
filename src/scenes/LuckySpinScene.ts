@@ -63,8 +63,9 @@ export class LuckySpinScene extends Phaser.Scene {
   }
 
   private addBtn(x: number, y: number, label: string, color: number, fn: () => void, pulse: boolean): void {
-    const r = this.add.rectangle(x, y, 220, 52, color).setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
-    const t = this.add.text(x, y, label, { fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold' }).setOrigin(0.5);
+    const bw = 220, pad = 16;
+    const r = this.add.rectangle(x, y, bw, 52, color).setStrokeStyle(2, 0x8a6420).setInteractive({ useHandCursor: true });
+    const t = this.add.text(x, y, label, { fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold', fixedWidth: bw - pad * 2, align: 'center' }).setOrigin(0.5);
     r.on('pointerover', () => r.setFillStyle(0xe8c47a)); r.on('pointerout', () => r.setFillStyle(color));
     r.on('pointerdown', () => r.setScale(0.95)); r.on('pointerup', () => { r.setScale(1); fn(); });
     if (pulse) this.tweens.add({ targets: r, scaleX: 1.05, scaleY: 1.05, duration: 500, yoyo: true, repeat: -1 });
@@ -93,7 +94,7 @@ export class LuckySpinScene extends Phaser.Scene {
     const ov = this.add.rectangle(w / 2, h / 2, w, h, 0x000000, 0.5).setInteractive().setDepth(30);
     const msg = reward.type === 'extra_spin' ? 'Ещё один спин!'
       : reward.type === 'score_multiplier' ? `×${reward.value} очков\nв следующей игре!` : `+${reward.value} очков\nв следующей игре!`;
-    const t = this.add.text(w / 2, h * 0.4, msg, { fontFamily: BRAND.FONT_DISPLAY, fontSize: '28px', color: '#FFD700', align: 'center' }).setOrigin(0.5).setDepth(31).setScale(0);
+    const t = this.add.text(w / 2, h * 0.4, msg, { fontFamily: BRAND.FONT_DISPLAY, fontSize: '28px', color: '#FFD700', align: 'center', fixedWidth: 300 }).setOrigin(0.5).setDepth(31).setScale(0);
     this.tweens.add({ targets: t, scale: 1, duration: 300, ease: 'Back.easeOut' });
     const cleanup = () => { ov.destroy(); t.destroy(); };
     if (reward.type === 'extra_spin') this.time.delayedCall(800, () => { cleanup(); this.doSpin(true); });

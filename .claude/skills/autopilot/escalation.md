@@ -8,9 +8,11 @@ When to escalate and how to handle failures.
 |-----------|-------|-------------|
 | Debug retry (code bug) | 3 | → Spark (BUG spec) |
 | Debug retry (architecture) | 3 | → Council |
-| ./test fast fail | 5 | → STOP (ask human) |
+| ./test fast fail (per-task gate) | 5 | → STOP (ask human) |
+| ./test ci fail (finishing gate) | 3 | → STOP (ask human) |
 | ./test llm fail | 2 | → STOP (ask human) |
 | Reviewer refactor | 2 | → Council |
+| Pre-check fix (`precheck_loop`) | 2 | → STOP (ask human) |
 | Heavy drift (planner) | 0 | → Council (immediate) |
 | Out-of-scope failures | ∞ | skip |
 
@@ -158,29 +160,31 @@ TESTER fails:
 ```
 CODE QUALITY REVIEWER returns needs_refactor:
 ├── refactor_count < 2?
-│   └── YES → CODER fix → TESTER → REVIEWER
+│   └── YES → CODER fix (blocking findings only) → TESTER → REVIEWER
 │
 └── refactor_count >= 2?
     └── → Council escalation
 ```
 
-## Diary Recording
+`needs_refactor` is defined by at least one `severity: blocking` finding.
+Advisory findings never open this loop and are never carried into it — they go
+to the diary (task-loop Step 6.5). Escalating to Council over advisories is how
+a naming nit turns itself into a spec.
+
+## Diary Recording (Inline — ADR-007)
 
 **Triggers:**
-- `bash_instead_of_tools` — used bash when tool exists
 - `test_retry > 1` — needed multiple debug attempts
 - `escalation_used` — escalated to Spark/Council
+- `regression_captured` — debug fix became permanent regression test
 
 **When:** After DEBUG LOOP (if retry > 1) or after escalation.
 
-```yaml
-Task tool:
-  subagent_type: "diary-recorder"
-  prompt: |
-    task_id: "{TASK_ID}"
-    problem_type: {trigger}
-    error_message: "{error}"
-    files_changed: [...]
+**How:** Inline write by orchestrator (no subagent). See `task-loop.md` → Step 6.5.
+
+Escalation events get an additional index row:
+```
+| {YYYY-MM-DD} | {TASK_ID} | escalation | {escalation_type}: {brief reason} | pending |
 ```
 
 ## Blocked Status
@@ -188,9 +192,12 @@ Task tool:
 When to set status=blocked:
 
 - Deploy validation failed
-- Spec Reviewer loop > 2 iterations
+- Spec compliance loop > 2 iterations
 - Unclear requirements
 - Human decision needed
 - Git conflicts
 
-**Always update BOTH spec AND backlog!**
+**Emit `task_status: blocked` in the final JSON output.**
+Do NOT edit `**Status:**` markdown in spec or backlog — callback is the single
+writer and commits lifecycle yaml via atomic plumbing. Any direct
+markdown edit will be overwritten by the next render_backlog pass.

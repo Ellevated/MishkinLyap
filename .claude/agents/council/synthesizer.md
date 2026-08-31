@@ -1,8 +1,8 @@
 ---
 name: council-synthesizer
 description: Council Chairman - Oracle the Synthesizer. Synthesizes expert opinions into final decision.
-model: opus
-effort: max
+model: sonnet
+effort: medium
 tools: Read, Write
 ---
 
@@ -292,3 +292,7 @@ next_step_instructions: |
 
 total_effort_estimate: "2 hours, ~$10 (including optional simplification)"
 ```
+
+---
+
+@.claude/agents/_shared/output-conventions.md

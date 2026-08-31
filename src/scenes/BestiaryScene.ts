@@ -10,8 +10,8 @@ import { ANIMALS, BRAND, GAME } from '../config/GameConfig';
 import { ScoreManager } from '../game/ScoreManager';
 
 const ANIMAL_NAMES: Record<string, string> = {
-  hamster: 'Хомячок', bunny: 'Зайчик', kitten: 'Котёнок', cat: 'Кошка',
-  puppy: 'Собачка', fox: 'Лисичка', panda: 'Панда', bear: 'Мишка',
+  chick: 'Цыплёнок', hedgehog: 'Ёжик', kitten: 'Котёнок', puppy: 'Собачка',
+  bunny: 'Зайчик', fox: 'Лисичка', wolf: 'Волчок', bear: 'Мишка',
 };
 
 export class BestiaryScene extends Phaser.Scene {
@@ -63,7 +63,7 @@ export class BestiaryScene extends Phaser.Scene {
 
       this.add.text(cx, cy + 42, isDiscovered ? (ANIMAL_NAMES[cfg.key] ?? cfg.name) : '???', {
         fontSize: '14px', color: isDiscovered ? BRAND.TEXT_INK : BRAND.TEXT_SECONDARY,
-        fontFamily: BRAND.FONT_BODY,
+        fontFamily: BRAND.FONT_BODY, fixedWidth: 90, align: 'center',
       }).setOrigin(0.5);
     });
 
@@ -83,6 +83,7 @@ export class BestiaryScene extends Phaser.Scene {
     btn.setInteractive({ useHandCursor: true });
     this.add.text(width / 2, btnY, 'Назад', {
       fontSize: '20px', color: BRAND.TEXT_INK, fontFamily: BRAND.FONT_BODY, fontStyle: 'bold',
+      fixedWidth: 148, align: 'center',
     }).setOrigin(0.5);
     btn.on('pointerover', () => btn.setFillStyle(0xe8c47a));
     btn.on('pointerout', () => btn.setFillStyle(0xede0c4));
